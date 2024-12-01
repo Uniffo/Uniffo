@@ -1,3 +1,5 @@
+// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+
 import { walk } from '@svarta/walk-it';
 import type { TDirStructure } from '../map_dir_structure_to_path_content_array/map_dir_structure_to_path_content_array.d.ts';
 import { logger } from '../../global/logger.ts';

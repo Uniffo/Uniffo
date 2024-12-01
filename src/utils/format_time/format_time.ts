@@ -1,3 +1,5 @@
+// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+
 export function formatTime(ms: number) {
     const seconds = ms / 1000;
     const minutes = ms / (1000 * 60);

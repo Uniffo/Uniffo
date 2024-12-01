@@ -1,3 +1,5 @@
+// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+
 import { _ } from '../lodash/lodash.ts';
 import { logger } from '../../global/logger.ts';
 import { loopOnDirStructure } from '../loop_on_dir_structure/loop_on_dir_structure.ts';

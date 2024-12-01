@@ -1,3 +1,5 @@
+// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+
 import { cwd } from '../../utils/cwd/cwd.ts';
 import { generateUniqueBasename } from '../../utils/generate_unique_basename/generate_unique_basename.ts';
 import _commandMetaInit from '../../commands/project/init/init.ts';
