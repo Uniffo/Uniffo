@@ -36,6 +36,7 @@ Deno.test('classCommandInvokerFacade', async function testClassCommandInvokerFac
 		cliDir: testData.dir.cli,
 		gitHubApiClient,
 		tmpDir,
+		database,
 	});
 	const commandsRepository = new classCommandsRepository();
 	const commandInvoker = new classCommandInvoker();

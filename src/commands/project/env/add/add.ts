@@ -2,8 +2,11 @@
 
 import { TCommandArgs, TCommandMeta } from '../../../../classes/command/command.d.ts';
 import { classCommand } from '../../../../classes/command/command.ts';
+import classDockerContainers from '../../../../classes/docker_containers/docker_containers.ts';
+import { CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH } from '../../../../constants/CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH.ts';
 import { logger } from '../../../../global/logger.ts';
 import { generateUniqueBasename } from '../../../../utils/generate_unique_basename/generate_unique_basename.ts';
+import { mapProvidedContainersToObject } from '../../../../utils/map_provided_containers_to_object/map_provided_containers_to_object.ts';
 import { pathExist } from '../../../../utils/path_exist/path_exist.ts';
 import { pwd } from '../../../../utils/pwd/pwd.ts';
 import { commandProjectEnvAddDocs, description } from './add.docs.ts';
@@ -25,27 +28,41 @@ class classCommandProjectEnvAdd extends classCommand {
 		const data = await this.getInputData();
 		logger.debugVar('data', data);
 
-		const envDir = `${await pwd()}/uniffo/environments/${data.envName}`;
-		logger.debugVar('envDir', envDir);
+		const projectManager = await this.getProjectManager();
+		logger.debugVar('projectManager', projectManager);
 
-		logger.info('Creating environment directory...');
-		await Deno.mkdir(envDir, { recursive: true });
+		const envName = data.envName;
+		logger.debugVar('envName', envName);
 
-		const envConfigFile = `${envDir}/config.json`;
-		logger.debugVar('envConfigFile', envConfigFile);
+		const mappedContainers = mapProvidedContainersToObject(data.containers);
+		logger.debugVar('mappedContainers', mappedContainers);
 
-		logger.info('Creating environment config file...');
-		await Deno.writeTextFile(envConfigFile, JSON.stringify({}));
+		logger.log(`Adding environment ${JSON.stringify(envName)}...`);
+		await projectManager.addEnvironment(data.envName, mappedContainers);
 	}
 
 	public async getInputData() {
-		const validator = async (value: string) => {
-			if (await pathExist(`${await pwd()}/uniffo/environments/${value}`)) {
-				return `Environment '${value}' already exist!`;
+		const validatorEnvName = async (value: string) => {
+			logger.debugFn(arguments);
+
+			const envPath =
+				`${await pwd()}/${CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH}/${value}`;
+			logger.debugVar('envPath', envPath);
+
+			if (await pathExist(envPath)) {
+				return `Environment already exist! "${envPath}"`;
 			}
 
 			return this.validateEnvName(value);
 		};
+
+		const validatorContainers = (value: string) => {
+			logger.debugFn(arguments);
+			return this.validateNamesOfSupportedContainersAndAliases(value);
+		};
+
+		const availableContainers = classDockerContainers.getSupportedContainersNames();
+		const defaultContainers: (typeof availableContainers)[number][] = ['wp-apache', 'database'];
 
 		return {
 			envName: await this.getOrAskForArg({
@@ -55,9 +72,19 @@ class classCommandProjectEnvAdd extends classCommand {
 				throwIfInvalid: true,
 				defaultValue: await generateUniqueBasename({
 					prefix: 'my-env',
-					basePath: `${await pwd()}/uniffo/environments`,
+					basePath: `${await pwd()}/${CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH}`,
 				}),
-				validator,
+				validator: validatorEnvName,
+			}),
+			containers: await this.getOrAskForArg({
+				name: 'containers',
+				defaultValue: defaultContainers.join(','),
+				askMessage: `Enter list of container to setup example "${
+					availableContainers.filter((name) => name != 'root').join(',')
+				}"`,
+				required: false,
+				throwIfInvalid: true,
+				validator: validatorContainers,
 			}),
 		};
 	}

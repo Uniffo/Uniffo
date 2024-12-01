@@ -12,6 +12,9 @@ import { logger } from '../../../../global/logger.ts';
 import { shell } from '../../../../utils/shell/shell.ts';
 import { prepareCmd } from '../../../../utils/prepare_command_to_execution/prepare_command_to_execution.ts';
 import _commandMetaInit from '../../init/init.ts';
+import classDockerContainers from '../../../../classes/docker_containers/docker_containers.ts';
+import { pwd } from '../../../../utils/pwd/pwd.ts';
+import { CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH } from '../../../../constants/CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH.ts';
 
 Deno.test('commandProjectEnvAdd', async function testCommandProjectEnvAdd(t) {
 	const testDir = `${cwd()}/${await generateUniqueBasename({
@@ -62,12 +65,30 @@ Deno.test('commandProjectEnvAdd', async function testCommandProjectEnvAdd(t) {
 
 		assert(
 			await pathExist(
-				`${cwd()}/uniffo/environments/${envName}/config.json`,
+				`${await pwd()}/${CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH}/${envName}/.env.root`,
 			) === true,
 			'Check if config file exists',
 		);
 
 		await destroy();
+
+		const envName2 = 'my-custom-env-name2';
+
+		const { command: command2, destroy: destory2 } = await prepareCmd(_commandMeta, [
+			'--debug',
+			`--env-name="${envName2}"`,
+		]);
+
+		assert(await noError(async () => await command2._exec()), 'Check command2 execution');
+
+		assert(
+			await pathExist(
+				`${await pwd()}/${CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH}/${envName2}/.env.root`,
+			) === true,
+			'Check if config file exists',
+		);
+
+		await destory2();
 	});
 
 	await t.step(async function invalidEnvName() {
@@ -104,6 +125,30 @@ Deno.test('commandProjectEnvAdd', async function testCommandProjectEnvAdd(t) {
 		);
 
 		Deno.chdir(`${_cwd}`);
+
+		await destroy();
+	});
+
+	await t.step(async function includedContainers() {
+		const envName = 'my-custom-env-with-containers';
+
+		const availableContainers = classDockerContainers.getSupportedContainersNames();
+		const defaultContainers: (typeof availableContainers)[number][] = ['wp-apache', 'database'];
+
+		const { command, destroy } = await prepareCmd(_commandMeta, [
+			'--debug',
+			`--env-name="${envName}"`,
+			`--containers="${defaultContainers}"`,
+		]);
+
+		assert(await noError(async () => await command._exec()), 'Check command execution');
+
+		assert(
+			await pathExist(
+				`${await pwd()}/${CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH}/${envName}/.env.root`,
+			) === true,
+			'Check if config file exists',
+		);
 
 		await destroy();
 	});

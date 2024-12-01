@@ -1,61 +1,141 @@
 // Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
 
-import { extname } from '@std/path/extname';
-import { recursiveReaddir } from 'https://deno.land/x/recursive_readdir@v2.0.0/mod.ts';
 import { logger } from '../../global/logger.ts';
-import { basename } from '@std/path/basename';
+import { walk } from '@svarta/walk-it';
+import { CLI_PROJECT_STRUCTURE_SOURCE_DIR_PATH } from '../../constants/CLI_PROJECT_STRUCTURE_SOURCE_DIR_PATH.ts';
+import { CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH } from '../../constants/CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH.ts';
+import { _ } from '../../utils/lodash/lodash.ts';
+import { CLI_PROJECT_STRUCTURE_EMPTY_DIR } from '../../constants/CLI_PROJECT_STRUCTURE_EMPTY_DIR.ts';
 
-type definition = { containerName: string; content: string };
+type definition = {
+    containerName: string;
+    structure: {
+        [file: string]: string;
+    };
+};
+
+function compileContent(str: string) {
+    logger.debugFn(arguments);
+
+    const replaceMap = {
+        '${{REPLACE_CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH}}':
+            CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH,
+        '${{REPLACE_CLI_PROJECT_STRUCTURE_SOURCE_DIR_PATH}}': CLI_PROJECT_STRUCTURE_SOURCE_DIR_PATH,
+    };
+    logger.debugVar('replaceMap', replaceMap);
+
+    const replaceMapKeys = Object.keys(replaceMap) as unknown as (keyof typeof replaceMap)[];
+    logger.debugVar('replaceMapKeys', replaceMapKeys);
+
+    for (let i = 0; i < replaceMapKeys.length; i++) {
+        const toReplace = replaceMapKeys[i];
+        logger.debugVar('toReplace', toReplace);
+
+        const replaceBy = replaceMap[toReplace];
+        logger.debugVar('replaceBy', replaceBy);
+
+        str = str.replaceAll(toReplace, replaceBy);
+        logger.debugVar('str', str);
+    }
+
+    return str;
+}
 
 export async function generateDockerContainersDefinitions(preCompiledDir: string) {
     const definitionsDir = `${preCompiledDir}/../classes/docker_containers/definitions`;
 
-    const definitionsArray: definition[] = [];
-
-    const addDefinition = (def: definition) => definitionsArray.push(def);
-
-    for (
-        const file of (await recursiveReaddir(definitionsDir)).filter((file: string) =>
-            extname(file) === '.yml'
-        )
+    const definitions = [] as definition[];
+    for await (
+        const entry of walk(definitionsDir, { maxLevel: 0 })
     ) {
-        logger.debug(`Var file:`, file);
+        const folders = entry.folders;
+        logger.debugVar('folders', folders);
 
-        const fileBasename = basename(file);
-        logger.debug(`Var fileBasename:`, fileBasename);
+        for (let i = 0; i < folders.length; i++) {
+            const folder = folders[i];
+            logger.debugVar('folder', folder);
 
-        const containerName = fileBasename.split('.')[1] || undefined;
-        logger.debug(`Var containerName:`, containerName);
+            const definition = {
+                containerName: folder.name,
+                structure: {},
+            } as definition;
 
-        if (!containerName) {
-            throw new Error(`Container name not found in file: ${file}`);
+            const fileBasename = folder.name;
+            logger.debugVar('fileBasename', fileBasename);
+
+            const absolutePath = `${folder.parentPath}/${fileBasename}`;
+            logger.debugVar('absolutePath', absolutePath);
+
+            for await (
+                const entryInContainerDir of walk(absolutePath)
+            ) {
+                logger.debugVar('entryInContainerDir', entryInContainerDir);
+
+                const filesInContainerDir = entryInContainerDir.files;
+                logger.debugVar('filesInContainerDir', filesInContainerDir);
+
+                const foldersInContainerDir = entryInContainerDir.folders;
+                logger.debugVar('foldersInContainerDir', foldersInContainerDir);
+
+                filesInContainerDir.forEach((fileInContainerDir) => {
+                    logger.debugVar('fileInContainerDir', fileInContainerDir);
+
+                    const absolutePathToFile =
+                        `${fileInContainerDir.parentPath}/${fileInContainerDir.name}`;
+                    logger.debugVar('absolutePathToFile', absolutePathToFile);
+
+                    const relativePath = absolutePathToFile
+                        .replace(absolutePath, '').split(
+                            '/',
+                        ).filter((p) => p).join('/');
+                    logger.debugVar('relativePath', relativePath);
+
+                    if (relativePath) {
+                        _.set(
+                            definition.structure,
+                            relativePath.split('/'),
+                            compileContent(Deno.readTextFileSync(absolutePathToFile)),
+                        );
+                    }
+                });
+
+                foldersInContainerDir.forEach((folderInContainerDir) => {
+                    logger.debugVar('folderInContainerDir', folderInContainerDir);
+
+                    const absolutePathToFolder =
+                        `${folderInContainerDir.parentPath}/${folderInContainerDir.name}`;
+                    logger.debugVar('absolutePathToFile', absolutePathToFolder);
+
+                    const relativePath = absolutePathToFolder
+                        .replace(absolutePath, '').split(
+                            '/',
+                        ).filter((p) => p).join('/');
+                    logger.debugVar('relativePath', relativePath);
+
+                    if (relativePath) {
+                        _.set(
+                            definition.structure,
+                            relativePath.split('/'),
+                            CLI_PROJECT_STRUCTURE_EMPTY_DIR,
+                        );
+                    }
+                });
+            }
+
+            definitions.push(definition);
         }
-
-        const content = Deno.readTextFileSync(file);
-        logger.debug(`Var content:`, content);
-
-        addDefinition({ containerName, content });
     }
 
-    const spacing = '    ';
-    const containersDictionary = `export const DOCKER_CONTAINERS_DICTIONARY = {\n${spacing}${
-        definitionsArray.map((def) => `"${def.containerName}": "${def.containerName}",`).join(
-            `\n${spacing}`,
-        )
-    }\n} as {\n${spacing}${
-        definitionsArray.map((def) => `"${def.containerName}": "${def.containerName}",`).join(
-            `\n${spacing}`,
-        )
-    }\n};`;
-    const definitionsContent =
-        `${containersDictionary}\nexport const DOCKER_CONTAINERS_DEFINITIONS = [\n${spacing}${
-            definitionsArray.map((def) =>
-                `{\n${spacing}${spacing}name: "${def.containerName}",\n${spacing}${spacing}content: ${
-                    JSON.stringify(def.content || '')
-                },\n${spacing}}`
-            ).join(`,\n${spacing}`)
-        }\n];`;
-    const definitionsFile = `${preCompiledDir}/__docker_containers_definitions.ts`;
+    logger.debugVar('definitions', definitions);
 
-    Deno.writeTextFileSync(definitionsFile, definitionsContent);
+    let fileContent = `export const DOCKER_CONTAINERS_DICTIONARY = ${
+        JSON.stringify(definitions.map((def) => def.containerName))
+    } as const;\n`;
+    fileContent += `export const DOCKER_CONTAINERS_DEFINITIONS = ${JSON.stringify(definitions)};\n`;
+    logger.debugVar('fileContent', fileContent);
+
+    const definitionsFile = `${preCompiledDir}/__docker_containers_definitions.ts`;
+    logger.debugVar('definitionsFile', definitionsFile);
+
+    Deno.writeTextFileSync(definitionsFile, fileContent);
 }

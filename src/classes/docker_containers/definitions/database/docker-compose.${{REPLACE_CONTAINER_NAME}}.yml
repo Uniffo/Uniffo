@@ -1,0 +1,14 @@
+services:
+
+  ${{REPLACE_CONTAINER_NAME}}:
+    env_file:
+      - ./${{REPLACE_CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH}}/${ENVIRONMENT_NAME}/compose/${{REPLACE_CONTAINER_NAME}}/.env.${{REPLACE_CONTAINER_NAME}}
+    image: ${IMAGE_DB:-mariadb}
+    restart: ${DB_RESTART:-unless-stopped}
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-wordpress}
+      - MYSQL_DATABASE=${DB_NAME:-wordpress}
+      - MYSQL_USER=${DB_USER:-wordpress}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-wordpress}
+    volumes:
+      - ./${{REPLACE_CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH}}/${ENVIRONMENT_NAME}/compose/${{REPLACE_CONTAINER_NAME}}/data:/var/lib/mysql:Z

@@ -1,7 +1,5 @@
 // Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
 
-import { CLI_PVFB } from '../../constants/CLI_PVFB.ts';
-import createProjectStructure from '../../utils/create_project_structure/create_project_structure.ts';
 import { cwd } from '../../utils/cwd/cwd.ts';
 import { classCliVersionManager } from './cli_version_manager.ts';
 import { getError } from '../../utils/get_error/get_error.ts';
@@ -10,13 +8,20 @@ import { pathExist } from '../../utils/path_exist/path_exist.ts';
 import { getDbForTests } from '../../utils/get_db_for_tests/get_db_for_tests.ts';
 import { getGhApiClientForTests } from '../../utils/get_gh_api_client_for_tests/get_gh_api_client_for_tests.ts';
 import { assert } from '@std/assert';
+import { generateUniqueBasename } from '../../utils/generate_unique_basename/generate_unique_basename.ts';
+import { classProjectManager } from '../project_manager/project_manager.ts';
+import { CLI_PROJECT_STRUCTURE_VERSION_FILE_PATH } from '../../constants/CLI_PROJECT_STRUCTURE_VERSION_FILE_PATH.ts';
 
 Deno.test('classCliVersionManager', async function testClassCliVersionManager() {
 	const testDir = `${cwd()}/test_classCliVersionManager`;
+	const testProjectDir = `${cwd()}/${await generateUniqueBasename({
+		basePath: cwd(),
+		prefix: `test_pr_`,
+	})}`;
 	const testData = {
 		dir: {
 			test: `${testDir}`,
-			project: `${testDir}/project`,
+			project: `${testProjectDir}`,
 			cli: {
 				main: `${testDir}/.cli`,
 				tmp: `${testDir}/.cli/tmp`,
@@ -26,7 +31,9 @@ Deno.test('classCliVersionManager', async function testClassCliVersionManager() 
 		},
 	};
 
-	await createProjectStructure(`${testData.dir.project}`);
+	const pm = new classProjectManager({ projectDir: `${testData.dir.project}` });
+
+	await pm.ensureInitialStructure();
 
 	const { database, destroy } = await getDbForTests();
 
@@ -36,6 +43,7 @@ Deno.test('classCliVersionManager', async function testClassCliVersionManager() 
 		cliDir: testData.dir.cli,
 		gitHubApiClient,
 		tmpDir: testData.dir.cli.tmp,
+		database,
 	});
 
 	const latestVer = (await cliVersionManager.getVersionsList()).at(-1)?.tagName;
@@ -49,58 +57,75 @@ Deno.test('classCliVersionManager', async function testClassCliVersionManager() 
 
 	const _cwd = cwd();
 
-	Deno.chdir(testData.dir.project);
+	let error;
 
-	cliVersionManager.setPrefferdCliVersion(latestVer);
-	await cliVersionManager.init();
-	cliVersionManager.unsetPrefferdCliVersion();
+	try {
+		Deno.chdir(testData.dir.project);
 
-	Deno.writeTextFileSync(`${testData.dir.project}/${CLI_PVFB}`, `999.999.999`);
+		cliVersionManager.setPrefferdCliVersion(latestVer);
+		await cliVersionManager.init();
+		cliVersionManager.unsetPrefferdCliVersion();
 
-	assert(
-		(await getError<string>(async () => {
-			await cliVersionManager.init();
-		})).length > 0,
-		'try to get unavailable version',
-	);
+		Deno.writeTextFileSync(
+			`${testData.dir.project}/${CLI_PROJECT_STRUCTURE_VERSION_FILE_PATH}`,
+			`999.999.999`,
+		);
 
-	assert(
-		cliVersionManager.getDispatchTarget().map((p) => p.includes(testData.dir.cli.versions))
-			.includes(true),
-		'get dispatch path',
-	);
+		assert(
+			(await getError<string>(async () => {
+				await cliVersionManager.init();
+			})).length > 0,
+			'try to get unavailable version',
+		);
 
-	const version = `0.1.0`;
+		assert(
+			cliVersionManager.getDispatchTarget().map((p) => p.includes(testData.dir.cli.versions))
+				.includes(true),
+			'get dispatch path',
+		);
 
-	assert(
-		(await getError<string>(async () => {
-			await cliVersionManager.downloadVersion(version);
-		})) === undefined,
-		'download version',
-	);
+		const version = `0.1.0`;
 
-	assert(await pathExist(`${testData.dir.cli.versions}/${version}/uniffo`), 'verify download');
+		assert(
+			(await getError<string>(async () => {
+				await cliVersionManager.downloadVersion(version);
+			})) === undefined,
+			'download version',
+		);
 
-	assert(await cliVersionManager.ensureVersion(version) === undefined, 'ensure version');
+		assert(
+			await pathExist(`${testData.dir.cli.versions}/${version}/uniffo`),
+			'verify download',
+		);
 
-	const useLatest = await getError<string>(async () => {
-		await cliVersionManager.useLatest();
-	});
+		assert(await cliVersionManager.ensureVersion(version) === undefined, 'ensure version');
 
-	assert(
-		useLatest === undefined,
-		`use latest version = "${useLatest}"`,
-	);
+		const useLatest = await getError<string>(async () => {
+			await cliVersionManager.useLatest();
+		});
 
-	assert(Array.isArray(await cliVersionManager.getVersionsList()), 'versions list');
+		assert(
+			useLatest === undefined,
+			`use latest version = "${useLatest}"`,
+		);
 
-	assert(_.isObject(cliVersionManager.getDirInfo()), 'get dir info');
+		assert(Array.isArray(await cliVersionManager.getVersionsList()), 'versions list');
 
-	assert(_.isBoolean(cliVersionManager.shouldOutsourceCmd()), 'should outsource cmd');
+		assert(_.isObject(cliVersionManager.getDirInfo()), 'get dir info');
+
+		assert(_.isBoolean(cliVersionManager.shouldOutsourceCmd()), 'should outsource cmd');
+	} catch (err) {
+		error = err;
+	}
 
 	Deno.chdir(_cwd);
 
 	await destroy();
 
+	if (error) {
+		throw error;
+	}
+
 	await Deno.remove(testDir, { recursive: true });
+	await Deno.remove(testProjectDir, { recursive: true });
 });

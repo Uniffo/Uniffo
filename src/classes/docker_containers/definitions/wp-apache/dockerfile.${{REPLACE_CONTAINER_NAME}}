@@ -1,0 +1,27 @@
+ARG IMAGE
+FROM ${IMAGE:-wordpress:apache}
+
+# Install required packages
+RUN apt-get update \
+    && apt-get install -y \
+    libxml2-dev \
+    && docker-php-ext-install soap \
+    && rm -rf /var/lib/apt/lists/*
+
+# Map user id and group id
+ARG USER_ID
+ARG GROUP_ID
+RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
+    if getent passwd www-data ; then userdel -f www-data; fi \
+    && if getent group $GROUP_ID; then groupdel -f $(getent group $GROUP_ID | cut -d: -f1); fi \
+    && if getent group www-data ; then groupdel -f www-data; fi \
+    && groupadd -g ${GROUP_ID} www-data \
+    && useradd -l -u ${USER_ID} -g www-data www-data \
+    && install -d -m 0755 -o www-data -g www-data /home/www-data \
+;fi
+
+# Set the public directory
+ARG WEB_DIRECTORY
+ENV PUBLIC_DIR="/var/www/html/${WEB_DIRECTORY}"
+RUN set -eux; \
+	find /etc/apache2 -name '*.conf' -type f -exec sed -ri -e 's!/var/www/html!${PUBLIC_DIR}!g' '{}' +;

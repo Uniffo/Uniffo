@@ -7,10 +7,9 @@ import _commandMeta from './remove.ts';
 import { generateUniqueBasename } from '../../../utils/generate_unique_basename/generate_unique_basename.ts';
 import { cwd } from '../../../utils/cwd/cwd.ts';
 import { _ } from '../../../utils/lodash/lodash.ts';
-import createProjectStructure from '../../../utils/create_project_structure/create_project_structure.ts';
-import { CLI_PROJECT_STRUCTURE } from '../../../constants/CLI_PROJECT_STRUCTURE.ts';
 import { pathExist } from '../../../utils/path_exist/path_exist.ts';
 import { prepareCmd } from '../../../utils/prepare_command_to_execution/prepare_command_to_execution.ts';
+import { classProjectManager } from '../../../classes/project_manager/project_manager.ts';
 
 Deno.test('commandProjectRemove', async function testCommandProjectRemove(t) {
 	const _cwd = cwd();
@@ -43,7 +42,8 @@ Deno.test('commandProjectRemove', async function testCommandProjectRemove(t) {
 		});
 
 		await t.step('execution with force', async function testCommandRemoveWithForce() {
-			await createProjectStructure(testDir, CLI_PROJECT_STRUCTURE);
+			const pm = new classProjectManager({ projectDir: testDir });
+			await pm.ensureInitialStructure();
 
 			const args: string[] = [
 				'--debug',
@@ -64,7 +64,8 @@ Deno.test('commandProjectRemove', async function testCommandProjectRemove(t) {
 		});
 
 		await t.step('execution without force', async function testCommandRemoveWithoutForce() {
-			await createProjectStructure(testDir, CLI_PROJECT_STRUCTURE);
+			const pm = new classProjectManager({ projectDir: testDir });
+			await pm.ensureInitialStructure();
 
 			const args: string[] = [
 				'--debug',

@@ -28,6 +28,7 @@ class classCommandSetDefaultVersion extends classCommand {
                 name: 'release',
                 askMessage: 'Enter Uniffo release version:',
                 required: true,
+                throwIfInvalid: true,
                 validator: this.validateVersion.bind(this),
             }),
         };

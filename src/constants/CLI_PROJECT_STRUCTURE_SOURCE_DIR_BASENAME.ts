@@ -1,0 +1,1 @@
+export const CLI_PROJECT_STRUCTURE_SOURCE_DIR_BASENAME = 'source';

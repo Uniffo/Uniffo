@@ -60,6 +60,7 @@ export async function prepareCmd<T>(meta: TCommandMeta<T>, args: string[]) {
         cliDir: testData.dir.cli,
         gitHubApiClient,
         tmpDir: testData.dir.cli.tmp,
+        database,
     });
     logger.debugVar('cliVersionManager', cliVersionManager);
 

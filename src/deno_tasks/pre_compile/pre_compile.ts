@@ -13,6 +13,7 @@ const PRECOMPILED_DIR = `${cwd()}/src/pre_compiled`;
 
 await (async function () {
 	await generateVersion(`${cwd()}/VERSION`, `${PRECOMPILED_DIR}/__cli_version.ts`);
+	await generateDockerContainersDefinitions(PRECOMPILED_DIR);
 	await generateEmptyCommandsMetaFeedFile(`${PRECOMPILED_DIR}/__commands_meta_feed.ts`);
 	await generateEmptyCommandsMetaFile(`${PRECOMPILED_DIR}/__commands_meta.ts`);
 	await generateCommandsMetaFeed(
@@ -20,5 +21,4 @@ await (async function () {
 		`${PRECOMPILED_DIR}/__commands_meta_feed.ts`,
 	);
 	await generateCommandsMeta(`${cwd()}/src/commands`, `${PRECOMPILED_DIR}/__commands_meta.ts`);
-	await generateDockerContainersDefinitions(PRECOMPILED_DIR);
 })();

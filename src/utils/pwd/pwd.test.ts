@@ -3,9 +3,9 @@
 import { assertEquals } from '@std/assert';
 import { pwd } from './pwd.ts';
 import { logger } from '../../global/logger.ts';
-import createProjectStructure from '../create_project_structure/create_project_structure.ts';
 import { pathExist } from '../path_exist/path_exist.ts';
 import { cwd } from '../cwd/cwd.ts';
+import { classProjectManager } from '../../classes/project_manager/project_manager.ts';
 
 Deno.test('pwd', async function testPwd() {
 	const getRandomDig = () => Math.floor(Math.random() * (9 - 1)) + 1;
@@ -30,7 +30,8 @@ Deno.test('pwd', async function testPwd() {
 
 	logger.debug(`Creating '${testingDirPath}'`);
 
-	await createProjectStructure(testingDirPath);
+	const pm = new classProjectManager({ projectDir: testingDirPath });
+	await pm.ensureInitialStructure();
 
 	logger.debug(`Change directory to '${testingDirPath}'`);
 

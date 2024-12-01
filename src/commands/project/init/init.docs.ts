@@ -4,7 +4,10 @@ import { DOCUMENTATION_COLOR_THEME } from '../../../constants/DOCUMENTATION_COLO
 import { generateDocumentation } from '../../../utils/generate_documentation/generate_documentation.ts';
 
 const feedArguments = [
-	['--project-name="..."', 'Project directory name'],
+	[
+		'--project-name="..."',
+		'Project directory name. Allowed characters: a-z, A-Z, 0-9, - and _, spaces are not allowed',
+	],
 ];
 
 const feedOptions = [

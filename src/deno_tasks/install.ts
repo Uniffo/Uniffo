@@ -24,6 +24,7 @@ await (async function installer() {
 		cliDir: CLI_DIR,
 		gitHubApiClient,
 		tmpDir,
+		database,
 	});
 
 	logger.info('Initializing cli version manager');

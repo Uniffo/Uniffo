@@ -4,7 +4,14 @@ import { DOCUMENTATION_COLOR_THEME } from '../../../../constants/DOCUMENTATION_C
 import { generateDocumentation } from '../../../../utils/generate_documentation/generate_documentation.ts';
 
 const feedArguments = [
-	['--env-name="..."', 'Environment name'],
+	[
+		'--env-name="..."',
+		'Environment name. Allowed characters: a-z, A-Z, 0-9, - and _, spaces are not allowed',
+	],
+	[
+		'--containers="..."',
+		'List of container to setup ex. "wp,db" or "wp:my-wp-alias,db:my-db-alias".Allowed characters for alias: a-z, A-Z, 0-9, - and _, spaces are not allowed',
+	],
 ];
 
 const feedOptions = [
