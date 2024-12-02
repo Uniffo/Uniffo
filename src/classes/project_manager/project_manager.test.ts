@@ -135,4 +135,6 @@ Deno.test('projectManager', async function testProjectManager(t) {
             'Environment root env file exists',
         );
     });
+
+    Deno.removeSync(testDir);
 });
