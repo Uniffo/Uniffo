@@ -138,5 +138,5 @@ Deno.test('projectManager', async function testProjectManager(t) {
         );
     });
 
-    Deno.removeSync(testDir);
+    Deno.removeSync(testDir, { recursive: true });
 });
