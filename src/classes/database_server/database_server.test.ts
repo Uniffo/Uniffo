@@ -8,6 +8,7 @@ import { classDatabaseSqlLiteSchema } from '../database_sqllite_schema/database_
 import { classDatabaseServer } from './database_server.ts';
 import { build_sql_query } from '../../utils/build_sql_query/build_sql_query.ts';
 import { readUnixMessage } from '../../utils/read_unix_message/read_unix_message.ts';
+import { unit8ArrayToString } from '../../utils/unit8_array_to_string/unit8_array_to_string.ts';
 
 Deno.test('databaseServer', async function testDatabaseServer(t) {
     const testPath = `${cwd()}/test_databaseServer`;
@@ -55,7 +56,8 @@ Deno.test('databaseServer', async function testDatabaseServer(t) {
 
         await conn.write(new TextEncoder().encode('status'));
 
-        const received = await readUnixMessage(conn);
+        const receivedUnit8Array = await readUnixMessage(conn);
+        const received = unit8ArrayToString(receivedUnit8Array);
 
         conn.close();
 
@@ -77,7 +79,8 @@ Deno.test('databaseServer', async function testDatabaseServer(t) {
         );
         await conn.write(new TextEncoder().encode(sql));
 
-        const received = await readUnixMessage(conn);
+        const receivedUnit8Array = await readUnixMessage(conn);
+        const received = unit8ArrayToString(receivedUnit8Array);
 
         conn.close();
 
@@ -98,7 +101,8 @@ Deno.test('databaseServer', async function testDatabaseServer(t) {
 
         await conn.write(new TextEncoder().encode(sql));
 
-        const received = await readUnixMessage(conn);
+        const receivedUnit8Array = await readUnixMessage(conn);
+        const received = unit8ArrayToString(receivedUnit8Array);
 
         conn.close();
 

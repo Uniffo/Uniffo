@@ -5,6 +5,8 @@ import { logger } from '../../global/logger.ts';
 import { pathExist } from '../../utils/path_exist/path_exist.ts';
 import { compile, tql } from 'jsr:@arekx/teeql';
 import { readUnixMessage } from '../../utils/read_unix_message/read_unix_message.ts';
+import { unit8ArrayToString } from '../../utils/unit8_array_to_string/unit8_array_to_string.ts';
+import { chunkUint8Array } from '../../utils/chunk_unit8_array/chunk_unit8_array.ts';
 
 export class classDatabaseClient {
     public unixSocket: string;
@@ -48,9 +50,18 @@ export class classDatabaseClient {
             const unit8ArrayQuery = new TextEncoder().encode(query);
             logger.debugVar('unit8ArrayQuery', unit8ArrayQuery);
 
-            await connection.write(unit8ArrayQuery);
+            const chunkedUnit8ArrayQuery = chunkUint8Array(unit8ArrayQuery, 1024);
+            logger.debugVar('chunkedUnit8ArrayQuery', chunkedUnit8ArrayQuery);
 
-            const response = await readUnixMessage(connection);
+            for (const chunk of chunkedUnit8ArrayQuery) {
+                const chunkBytesWritten = await connection.write(chunk);
+                logger.debugVar('chunkBytesWritten', chunkBytesWritten);
+            }
+
+            const responseUnit8Array = await readUnixMessage(connection);
+            logger.debugVar('responseUnit8Array', responseUnit8Array);
+
+            const response = unit8ArrayToString(responseUnit8Array);
             logger.debugVar('response', response);
 
             if (response.startsWith('Uniffo db service: unexpected error:')) {

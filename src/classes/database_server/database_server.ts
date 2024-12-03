@@ -6,6 +6,8 @@ import { classDatabaseSqlLite } from '../database_sqllite/database_sqllite.ts';
 import { _ } from '../../utils/lodash/lodash.ts';
 import { readUnixMessage } from '../../utils/read_unix_message/read_unix_message.ts';
 import { sleep } from '../../utils/sleep/sleep.ts';
+import { unit8ArrayToString } from '../../utils/unit8_array_to_string/unit8_array_to_string.ts';
+import { chunkUint8Array } from '../../utils/chunk_unit8_array/chunk_unit8_array.ts';
 
 export class classDatabaseServer {
     public unixSocket: string;
@@ -103,7 +105,8 @@ export class classDatabaseServer {
         this.totalClients++;
         logger.info(`New client connected. Total clients: ${this.totalClients}`);
 
-        const message = await readUnixMessage(conn);
+        const messageUnit8Array = await readUnixMessage(conn);
+        const message = unit8ArrayToString(messageUnit8Array);
         logger.debugVar('message', message);
 
         if (message) {
@@ -149,7 +152,16 @@ export class classDatabaseServer {
 
                     logger.debugVar('response', response);
 
-                    await conn.write(new TextEncoder().encode(response));
+                    const unit8ArrayResponse = new TextEncoder().encode(response);
+                    logger.debugVar('unit8ArrayResponse', unit8ArrayResponse);
+
+                    const chunkedUnit8ArrayResponse = chunkUint8Array(unit8ArrayResponse, 1024);
+                    logger.debugVar('chunkedUnit8ArrayResponse', chunkedUnit8ArrayResponse);
+
+                    for (const chunk of chunkedUnit8ArrayResponse) {
+                        const chunkBytesWritten = await conn.write(chunk);
+                        logger.debugVar('chunkBytesWritten', chunkBytesWritten);
+                    }
 
                     break;
                 }

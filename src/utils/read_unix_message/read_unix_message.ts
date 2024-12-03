@@ -6,31 +6,48 @@ import { _ } from '../lodash/lodash.ts';
 export async function readUnixMessage(conn: Deno.UnixConn) {
     logger.debugFn(arguments);
 
-    const isBufferFull = (buffer: Uint8Array) => buffer.every((value) => value !== 0);
-    let msg = '';
+    const chunks: Uint8Array[] = [];
+    logger.debugVar('chunks', chunks);
+
     let totalBytesRead = 0;
+    logger.debugVar('totalBytesRead', totalBytesRead);
 
     while (true) {
-        const buffer = new Uint8Array(1024 * 6);
+        const buffer = new Uint8Array(1024);
         const bytesRead = await conn.read(buffer);
         logger.debugVar('buffer', buffer);
         logger.debugVar('bytesRead', bytesRead);
 
-        totalBytesRead += bytesRead || 0;
-        logger.debugVar('totalBytesRead', totalBytesRead);
-
-        if (!_.isNull(bytesRead)) {
-            const chunk = new TextDecoder().decode(buffer.subarray(0, bytesRead));
-            logger.debugVar('chunk', chunk);
-
-            msg = `${msg}${chunk}`;
-            logger.debugVar('msg', `${msg}`);
+        if (bytesRead === null) {
+            logger.debug('End of message');
+            break;
         }
 
-        if (!isBufferFull(buffer) || _.isNull(bytesRead)) {
+        totalBytesRead += bytesRead;
+        logger.debugVar('totalBytesRead', totalBytesRead);
+
+        chunks.push(buffer.subarray(0, bytesRead));
+        logger.debugVar('chunks', chunks);
+
+        if (bytesRead < buffer.length) {
+            logger.debug('End of message');
             break;
         }
     }
 
-    return msg;
+    const fullMessage = new Uint8Array(totalBytesRead);
+    logger.debugVar('fullMessage', fullMessage);
+
+    let offset = 0;
+    logger.debugVar('offset', offset);
+
+    for (const chunk of chunks) {
+        fullMessage.set(chunk, offset);
+        logger.debugVar('fullMessage', fullMessage);
+
+        offset += chunk.length;
+        logger.debugVar('offset', offset);
+    }
+
+    return fullMessage;
 }
