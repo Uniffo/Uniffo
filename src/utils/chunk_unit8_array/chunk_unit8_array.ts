@@ -1,3 +1,5 @@
+// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+
 import { logger } from '../../global/logger.ts';
 
 export function chunkUint8Array(data: Uint8Array, chunkSize: number): Uint8Array[] {
