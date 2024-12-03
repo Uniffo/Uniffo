@@ -2,12 +2,12 @@
 
 import { assertEquals } from '@std/assert';
 import { getDbForTests } from '../../utils/get_db_for_tests/get_db_for_tests.ts';
-import { classGitHubApiClient } from './gh_api_client.ts';
+import { getGhApiClientForTests } from '../../utils/get_gh_api_client_for_tests/get_gh_api_client_for_tests.ts';
 
 Deno.test('classGitHubApiClient', async function testClassGitHubApiClient() {
 	const { database, destroy } = await getDbForTests();
 
-	const ghApi = new classGitHubApiClient({ database });
+	const ghApi = getGhApiClientForTests(database);
 
 	const releases = await ghApi.fetchReleases();
 	const releaseTagName = releases[0].tag_name;
