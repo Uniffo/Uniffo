@@ -19,7 +19,7 @@ const feedOptions = [
 	[['-dbg', '--debug'], 'Display debug logs'],
 ];
 
-export const description = 'Initialize the project';
+export const description = 'Add environment to project';
 export const commandProjectEnvAddDocs = generateDocumentation({
 	usage: 'uniffo project env add [ARGUMENTS] [OPTIONS]',
 	description,
