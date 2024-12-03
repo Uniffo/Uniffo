@@ -3,7 +3,7 @@
 import { _ } from '../../utils/lodash/lodash.ts';
 import { logger } from '../../global/logger.ts';
 import { pathExist } from '../../utils/path_exist/path_exist.ts';
-import { compile, tql } from 'jsr:@arekx/teeql';
+import { compile, tql } from '@arekx/teeql';
 import { readUnixMessage } from '../../utils/read_unix_message/read_unix_message.ts';
 import { unit8ArrayToString } from '../../utils/unit8_array_to_string/unit8_array_to_string.ts';
 import { chunkUint8Array } from '../../utils/chunk_unit8_array/chunk_unit8_array.ts';
