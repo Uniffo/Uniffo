@@ -328,4 +328,26 @@ export class classProjectManager {
             );
         }
     }
+
+    public removeEnvironment(name: string, force: boolean = false) {
+        logger.debugFn(arguments);
+
+        if (!this.isEnvironmentExist(name)) {
+            throw new Error(`Environment ${JSON.stringify(name)} does not exist!`);
+        }
+
+        const envDir = this.getEnvironmentDirPath(name);
+        logger.debugVar('envDir', envDir);
+
+        if (
+            force === false &&
+            !confirm(`Are you sure you want to remove environment ${JSON.stringify(name)}?`)
+        ) {
+            logger.info(`Environment ${JSON.stringify(name)} was not removed.`);
+            return;
+        }
+
+        Deno.removeSync(envDir, { recursive: true });
+        logger.info(`Environment ${JSON.stringify(name)} was removed.`);
+    }
 }
