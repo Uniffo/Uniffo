@@ -545,7 +545,7 @@ export class classCliVersionManager {
 
 		logger.info(`Extracting into ${destDir}`);
 
-		await shell(...['unzip', downloadDetails.filename, '-d', destDir]);
+		await shell({ cmd: ['unzip', downloadDetails.filename, '-d', destDir] });
 
 		for (const dirEntry of Deno.readDirSync(destDir)) {
 			logger.debugVar('dirEntry', dirEntry);

@@ -288,7 +288,7 @@ export class classDatabaseService {
 	public async getOsUserId() {
 		logger.debugFn(arguments);
 
-		const uid = (await shell('id', '-u')).trim();
+		const uid = (await shell({ cmd: ['id', '-u'] })).trim();
 		logger.debugVar('uid', uid);
 
 		return uid;
@@ -306,9 +306,13 @@ export class classDatabaseService {
 			case 'darwin':
 				try {
 					await shell(
-						'launchctl',
-						'print',
-						`gui/${await this.getOsUserId()}/${this.getServiceName()}`,
+						{
+							cmd: [
+								'launchctl',
+								'print',
+								`gui/${await this.getOsUserId()}/${this.getServiceName()}`,
+							],
+						},
 					);
 					serviceIsLoaded = true;
 				} catch (error) {
@@ -317,12 +321,14 @@ export class classDatabaseService {
 				break;
 			case 'linux':
 				try {
-					await shell(
-						'systemctl',
-						'--user',
-						'is-enabled',
-						this.getServiceName(),
-					);
+					await shell({
+						cmd: [
+							'systemctl',
+							'--user',
+							'is-enabled',
+							this.getServiceName(),
+						],
+					});
 					serviceIsLoaded = true;
 				} catch (error) {
 					serviceIsLoaded = false;
@@ -345,7 +351,7 @@ export class classDatabaseService {
 			await this.stopServiceForDarwin();
 		}
 
-		await shell(...[`launchctl`, `load`, `-w`, `${this.getServiceFilePath()}`]);
+		await shell({ cmd: [`launchctl`, `load`, `-w`, `${this.getServiceFilePath()}`] });
 	}
 
 	public async startServiceForLinux() {
@@ -355,22 +361,22 @@ export class classDatabaseService {
 			await this.stopServiceForLinux();
 		}
 
-		await shell(...[`systemctl`, '--user', `enable`, `${this.getServiceName()}`]);
+		await shell({ cmd: [`systemctl`, '--user', `enable`, `${this.getServiceName()}`] });
 
-		await shell(...[`systemctl`, '--user', `start`, `${this.getServiceName()}`]);
+		await shell({ cmd: [`systemctl`, '--user', `start`, `${this.getServiceName()}`] });
 	}
 
 	public async stopServiceForDarwin() {
 		logger.debugFn(arguments);
 
-		await shell(...[`launchctl`, `unload`, `-w`, `${this.getServiceFilePath()}`]);
+		await shell({ cmd: [`launchctl`, `unload`, `-w`, `${this.getServiceFilePath()}`] });
 	}
 
 	public async stopServiceForLinux() {
 		logger.debugFn(arguments);
 
-		await shell(...[`systemctl`, '--user', `stop`, `${this.getServiceName()}`]);
+		await shell({ cmd: [`systemctl`, '--user', `stop`, `${this.getServiceName()}`] });
 
-		await shell(...[`systemctl`, '--user', `disable`, `${this.getServiceName()}`]);
+		await shell({ cmd: [`systemctl`, '--user', `disable`, `${this.getServiceName()}`] });
 	}
 }
