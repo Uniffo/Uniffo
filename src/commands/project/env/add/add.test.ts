@@ -15,8 +15,13 @@ import _commandMetaInit from '../../init/init.ts';
 import classDockerContainers from '../../../../classes/docker_containers/docker_containers.ts';
 import { pwd } from '../../../../utils/pwd/pwd.ts';
 import { CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH } from '../../../../constants/CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH.ts';
+import { classNonPremiumUserRestrictions } from '../../../../classes/non_premium_user_restrictions/non_premium_user_restrictions.ts';
 
 Deno.test('commandProjectEnvAdd', async function testCommandProjectEnvAdd(t) {
+	const _isPremiumUser = classNonPremiumUserRestrictions.isPremiumUser;
+
+	classNonPremiumUserRestrictions.isPremiumUser = true;
+
 	const testDir = `${cwd()}/${await generateUniqueBasename({
 		basePath: cwd(),
 		prefix: `test_cp_ea_`,
@@ -37,18 +42,18 @@ Deno.test('commandProjectEnvAdd', async function testCommandProjectEnvAdd(t) {
 	Deno.chdir(testDir);
 
 	await t.step(async function _initProject() {
-		logger.log(await shell('realpath', '.'));
-		logger.log(await shell('ls', '-la'));
+		logger.log(await shell({ cmd: ['realpath', '.'] }));
+		logger.log(await shell({ cmd: ['ls', '-la'] }));
 
 		await command._exec();
 
-		logger.log(await shell('realpath', '.'));
-		logger.log(await shell('ls', '-la'));
+		logger.log(await shell({ cmd: ['realpath', '.'] }));
+		logger.log(await shell({ cmd: ['ls', '-la'] }));
 
 		Deno.chdir(projectName);
 
-		logger.log(await shell('realpath', '.'));
-		logger.log(await shell('ls', '-la'));
+		logger.log(await shell({ cmd: ['realpath', '.'] }));
+		logger.log(await shell({ cmd: ['ls', '-la'] }));
 
 		await destroy();
 	});
@@ -152,6 +157,8 @@ Deno.test('commandProjectEnvAdd', async function testCommandProjectEnvAdd(t) {
 
 		await destroy();
 	});
+
+	classNonPremiumUserRestrictions.isPremiumUser = _isPremiumUser;
 
 	Deno.chdir(`${testDir}/../`);
 	await Deno.remove(testDir, { recursive: true });
