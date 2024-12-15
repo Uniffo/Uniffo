@@ -14,340 +14,481 @@ import { basename } from '@std/path';
 import { classDotenv } from '../dotenv/dotenv.ts';
 import { CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_PATH } from '../../constants/CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_PATH.ts';
 import { CLI_PROJECT_ENVIRONMENT_STRUCTURE_COMPOSE_DIR_PATH } from '../../constants/CLI_PROJECT_ENVIRONMENT_STRUCTURE_COMPOSE_DIR_PATH.ts';
-import { parse as parseYaml } from '@std/yaml';
+import { parseYaml } from '../../utils/parse_yaml/parse_yaml.ts';
 import type { mapProvidedContainersToObject } from '../../utils/map_provided_containers_to_object/map_provided_containers_to_object.ts';
+import { CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_BASENAME } from '../../constants/CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_BASENAME.ts';
+import { classNonPremiumUserRestrictions } from '../non_premium_user_restrictions/non_premium_user_restrictions.ts';
 
 /* The class `ProjectManager` in TypeScript handles project directory structure operations such as
 ensuring initial structure, converting structure to path content array, and getting the project
 structure. */
 export class classProjectManager {
-    private projectDir;
-    private dockerContainers;
+	private projectDir;
+	private dockerContainers;
+	private nonPremiumUserRestrictions;
 
-    constructor(args: { projectDir: string }) {
-        logger.debugFn(arguments);
+	constructor(args: { projectDir: string }) {
+		logger.debugFn(arguments);
 
-        this.projectDir = args.projectDir;
-        logger.debugVar('this.projectDir', this.projectDir);
+		this.projectDir = args.projectDir;
+		logger.debugVar('this.projectDir', this.projectDir);
 
-        this.dockerContainers = classDockerContainers;
-        logger.debugVar('this.dockerContainers', this.dockerContainers);
-    }
+		this.dockerContainers = classDockerContainers;
+		logger.debugVar('this.dockerContainers', this.dockerContainers);
 
-    /**
-     * This function returns the project directory.
-     * @returns The `projectDir` property is being returned.
-     */
-    public getProjectDir() {
-        logger.debugFn(arguments);
+		this.nonPremiumUserRestrictions = classNonPremiumUserRestrictions;
+	}
 
-        return this.projectDir;
-    }
+	/**
+	 * This function returns the project directory.
+	 * @returns The `projectDir` property is being returned.
+	 */
+	public getProjectDir() {
+		logger.debugFn(arguments);
 
-    public getProjectName() {
-        logger.debugFn(arguments);
+		return this.projectDir;
+	}
 
-        return basename(this.getProjectDir());
-    }
+	public getProjectName() {
+		logger.debugFn(arguments);
 
-    public getDotEnvManager(path: string) {
-        logger.debugFn(arguments);
+		return basename(this.getProjectDir());
+	}
 
-        return new classDotenv(path);
-    }
+	public getDotEnvManager(path: string) {
+		logger.debugFn(arguments);
 
-    public getStructure() {
-        return getDirStructure(this.getProjectDir());
-    }
+		return new classDotenv(path);
+	}
 
-    public getEnvironmentDirPath(environment: string) {
-        logger.debugFn(arguments);
+	public getStructure() {
+		return getDirStructure(this.getProjectDir());
+	}
 
-        const path =
-            `${this.getProjectDir()}/${CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH}/${environment}`;
-        logger.debugVar('path', path);
+	public getEnvironmentsDirPath() {
+		logger.debugFn(arguments);
 
-        return path;
-    }
+		const path = `${this.getProjectDir()}/${CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH}`;
+		logger.debugVar('path', path);
 
-    public getEnvironmentComposeDirPath(environment: string) {
-        logger.debugFn(arguments);
+		return path;
+	}
 
-        const path = `${
-            this.getEnvironmentDirPath(environment)
-        }/${CLI_PROJECT_ENVIRONMENT_STRUCTURE_COMPOSE_DIR_PATH}`;
-        logger.debugVar('path', path);
+	public getEnvironmentDirPath(environment: string) {
+		logger.debugFn(arguments);
 
-        return path;
-    }
+		const path = `${this.getEnvironmentsDirPath()}/${environment}`;
+		logger.debugVar('path', path);
 
-    public getEnvironmentRootDotenvFilePath(environment: string) {
-        logger.debugFn(arguments);
+		return path;
+	}
 
-        const path = `${
-            this.getEnvironmentDirPath(environment)
-        }/${CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_PATH}`;
-        logger.debugVar('path', path);
+	public getEnvironmentComposeDirPath(environment: string) {
+		logger.debugFn(arguments);
 
-        return path;
-    }
+		const path = `${
+			this.getEnvironmentDirPath(environment)
+		}/${CLI_PROJECT_ENVIRONMENT_STRUCTURE_COMPOSE_DIR_PATH}`;
+		logger.debugVar('path', path);
 
-    public getEnvironmentContainerComposeFilePath(environment: string, container: string) {
-        logger.debugFn(arguments);
+		return path;
+	}
 
-        const path = `${
-            this.getEnvironmentComposeDirPath(environment)
-        }/${container}/docker-compose.${container}.yml`;
-        logger.debugVar('path', path);
+	public getEnvironmentRootDotenvFilePath(environment: string) {
+		logger.debugFn(arguments);
 
-        return path;
-    }
+		const path = `${
+			this.getEnvironmentDirPath(environment)
+		}/${CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_PATH}`;
+		logger.debugVar('path', path);
 
-    public getEnvironmentFinalDockerCompose(environment: string) {
-        logger.debugFn(arguments);
+		return path;
+	}
 
-        const dotenvManager = this.getDotEnvManager(
-            this.getEnvironmentRootDotenvFilePath(environment),
-        );
-        logger.debugVar('dotenvManager', dotenvManager);
+	public getEnvironmentContainerComposeFilePath(environment: string, container: string) {
+		logger.debugFn(arguments);
 
-        const composeFiles = (dotenvManager.getVariable('COMPOSE_FILE') || '').split(':');
-        logger.debugVar('composeFiles', composeFiles);
+		const path = `${
+			this.getEnvironmentComposeDirPath(environment)
+		}/${container}/docker-compose.${container}.yml`;
+		logger.debugVar('path', path);
 
-        const composeFilesWithAbsolutePath = composeFiles.map((p) =>
-            `${this.getProjectDir()}/${p}`
-        );
-        logger.debugVar('composeFilesWithAbsolutePath', composeFilesWithAbsolutePath);
+		return path;
+	}
 
-        const composeFilesContent = composeFilesWithAbsolutePath.map((p) =>
-            Deno.readTextFileSync(p)
-        );
-        logger.debugVar('composeFilesContent', composeFilesContent);
+	public getEnvironmentFinalDockerCompose(environment: string) {
+		logger.debugFn(arguments);
 
-        const composeFilesYaml = composeFilesContent.map((p) => parseYaml(p) as Object);
-        logger.debugVar('composeFilesYaml', composeFilesYaml);
+		const dotenvManager = this.getDotEnvManager(
+			this.getEnvironmentRootDotenvFilePath(environment),
+		);
+		logger.debugVar('dotenvManager', dotenvManager);
 
-        const finalYaml = composeFilesYaml.reduce((acc, p) => {
-            return _.merge({}, acc, p);
-        });
-        logger.debugVar('finalYaml', finalYaml);
+		const composeFiles = (dotenvManager.getVariable('COMPOSE_FILE') || '').split(':');
+		logger.debugVar('composeFiles', composeFiles);
 
-        return finalYaml;
-    }
+		const composeFilesWithAbsolutePath = composeFiles.map((p) =>
+			`${this.getProjectDir()}/${p}`
+		);
+		logger.debugVar('composeFilesWithAbsolutePath', composeFilesWithAbsolutePath);
 
-    public async ensureInitialStructure() {
-        logger.debugFn(arguments);
+		const composeFilesContent = composeFilesWithAbsolutePath.map((p) =>
+			Deno.readTextFileSync(p)
+		);
+		logger.debugVar('composeFilesContent', composeFilesContent);
 
-        await ensureDirStructure(
-            CLI_PROJECT_STRUCTURE as unknown as TDirStructure,
-            this.getProjectDir(),
-        );
-    }
-    public async ensureContainerStructure(
-        container: ReturnType<typeof classDockerContainers.getSupportedContainersNames>[number],
-        path: string,
-    ) {
-        logger.debugFn(arguments);
+		const composeFilesYaml = composeFilesContent.map((p) => parseYaml(p));
+		logger.debugVar('composeFilesYaml', composeFilesYaml);
 
-        const containerDefinition = this.dockerContainers.getContainerDefinition(container);
-        logger.debugVar('containerDefinition', containerDefinition);
+		const finalYaml = composeFilesYaml.reduce((acc, p) => {
+			return _.merge({}, acc, p);
+		});
+		logger.debugVar('finalYaml', finalYaml);
 
-        if (!_.isObject(containerDefinition?.structure)) {
-            throw new Error(`Container ${container} does not have structure defined!`);
-        }
+		return finalYaml;
+	}
 
-        await ensureDirStructure(containerDefinition.structure as unknown as TDirStructure, path);
-    }
+	public getDockerComposeCommand(environment: string) {
+		logger.debugFn(arguments);
 
-    public isEnvironmentExist(name: string) {
-        logger.debugFn(arguments);
+		const command = [
+			'docker',
+			'compose',
+			`--env-file`,
+			this.getEnvironmentRootDotenvFilePath(environment),
+		];
+		logger.debugVar('command', command);
 
-        const envDir = this.getEnvironmentDirPath(name);
-        logger.debugVar('envDir', envDir);
+		return command;
+	}
 
-        const exist = pathExistSync(envDir);
-        logger.debugVar('exist', exist);
+	public getDockerComposeEnvironmentConfigCommand(environment: string) {
+		logger.debugFn(arguments);
 
-        return exist;
-    }
+		const command = [...this.getDockerComposeCommand(environment), 'config'];
+		logger.debugVar('command', command);
 
-    public containerExistInEnvironment(environment: string, container: string) {
-        logger.debugFn(arguments);
+		return command;
+	}
 
-        const composeDirPath = this.getEnvironmentComposeDirPath(environment);
-        logger.debugVar('composeDirPath', composeDirPath);
+	public async getEnvironmentsCount() {
+		logger.debugFn(arguments);
 
-        const composeContainerDirPath = `${composeDirPath}/${container}`;
-        logger.debugVar('composeContainerDirPath', composeContainerDirPath);
+		const environmentsDirPath = this.getEnvironmentsDirPath();
+		logger.debugVar('environmentsDirPath', environmentsDirPath);
 
-        const containerDirExist = pathExistSync(composeContainerDirPath);
-        logger.debugVar('containerDirExist', containerDirExist);
+		const structure = await getDirStructure(environmentsDirPath);
+		logger.debugVar('structure', structure);
 
-        if (containerDirExist) {
-            return true;
-        }
+		const environmentsCount = (await Promise.all(
+			Object.keys(structure).map((p) => this.isEnvironmentDir(this.getEnvironmentDirPath(p))),
+		))
+			.filter((p) => p).length;
+		logger.debugVar('environmentsCount', environmentsCount);
 
-        const finalYaml = this.getEnvironmentFinalDockerCompose(environment);
-        logger.debugVar('finalYaml', finalYaml);
+		return environmentsCount;
+	}
 
-        const dockerServiceExist = _.has(finalYaml, ['services', container]);
-        logger.debugVar('dockerServiceExist', dockerServiceExist);
+	public getEnvironmentContainersCount(environment: string) {
+		logger.debugFn(arguments);
 
-        if (dockerServiceExist) {
-            return true;
-        }
+		const dockerComposeConfigYaml = this.getEnvironmentFinalDockerCompose(environment);
+		logger.debugVar('dockerComposeConfigYaml', dockerComposeConfigYaml);
 
-        return false;
-    }
+		const services = dockerComposeConfigYaml?.services;
+		logger.debugVar('services', services);
 
-    public generateUniqueContainerName(environment: string, container: string) {
-        logger.debugFn(arguments);
+		if (!services || !_.isObject(services) || _.isEmpty(services)) {
+			logger.debug('No containers found in the environment');
+			return 0;
+		}
 
-        let key = 0;
-        logger.debugVar('key', key);
+		const containersCount = Object.keys(services).length;
+		logger.debugVar('containersCount', containersCount);
 
-        let containerName = container;
-        logger.debugVar('containerName', containerName);
+		return containersCount;
+	}
 
-        while (this.containerExistInEnvironment(environment, containerName)) {
-            containerName = `${container}-${key}`;
-            logger.debugVar('containerName', containerName);
+	public async ensureInitialStructure() {
+		logger.debugFn(arguments);
 
-            key++;
-            logger.debugVar('key', key);
-        }
+		await ensureDirStructure(
+			CLI_PROJECT_STRUCTURE as unknown as TDirStructure,
+			this.getProjectDir(),
+		);
+	}
+	public async ensureContainerStructure(
+		container: ReturnType<typeof classDockerContainers.getSupportedContainersNames>[number],
+		path: string,
+	) {
+		logger.debugFn(arguments);
 
-        return containerName;
-    }
+		const containerDefinition = this.dockerContainers.getContainerDefinition(container);
+		logger.debugVar('containerDefinition', containerDefinition);
 
-    public enableContainerInEnvironment(environment: string, container: string) {
-        logger.debugFn(arguments);
+		if (!_.isObject(containerDefinition?.structure)) {
+			throw new Error(`Container ${container} does not have structure defined!`);
+		}
 
-        const containerComposeFilePath = this.getEnvironmentContainerComposeFilePath(
-            environment,
-            container,
-        );
-        logger.debugVar('containerComposeFilePath', containerComposeFilePath);
+		await ensureDirStructure(containerDefinition.structure as unknown as TDirStructure, path);
+	}
 
-        const relativeComposeFilePath = containerComposeFilePath.replace(
-            `${this.getProjectDir()}/`,
-            './',
-        );
-        logger.debugVar('relativeComposeFilePath', relativeComposeFilePath);
+	public async isEnvironmentDir(path: string) {
+		const structure = await getDirStructure(path);
 
-        const dotenvManager = this.getDotEnvManager(
-            this.getEnvironmentRootDotenvFilePath(environment),
-        );
-        logger.debugVar('dotenvManager', dotenvManager);
+		const hasDotEnv = _.has(structure, [
+			CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_BASENAME,
+		]);
+		logger.debugVar('hasDotEnv', hasDotEnv);
 
-        const composeFiles = (dotenvManager.getVariable('COMPOSE_FILE') || '').split(':');
-        logger.debugVar('composeFiles', composeFiles);
+		const hasCompose = _.has(structure, [
+			CLI_PROJECT_ENVIRONMENT_STRUCTURE_COMPOSE_DIR_PATH,
+		]);
+		logger.debugVar('hasCompose', hasCompose);
 
-        if (composeFiles.includes(relativeComposeFilePath)) {
-            return;
-        }
-
-        composeFiles.push(relativeComposeFilePath);
-        logger.debugVar('composeFiles', composeFiles);
+		const composeIsDir = _.isObject(
+			structure[CLI_PROJECT_ENVIRONMENT_STRUCTURE_COMPOSE_DIR_PATH],
+		);
+		logger.debugVar('composeIsDir', composeIsDir);
 
-        dotenvManager.setVariable('COMPOSE_FILE', composeFiles.join(':'));
-    }
-
-    public async addContainerToEnvironment(
-        environment: string,
-        container: ReturnType<typeof classDockerContainers.getSupportedContainersNames>[number],
-        alias?: string,
-    ) {
-        logger.debugFn(arguments);
-
-        const containerName = this.generateUniqueContainerName(environment, alias || container);
-        logger.debugVar('containerName', containerName);
-
-        const containerDefinition = this.dockerContainers.getContainerDefinition(
-            container,
-            containerName,
-        );
-        logger.debugVar('containerDefinition', containerDefinition);
-
-        const structure = containerDefinition.structure as unknown as TDirStructure;
-        logger.debugVar('structure', structure);
-
-        const containerDirPath = `${
-            this.getEnvironmentComposeDirPath(environment)
-        }/${containerName}`;
-        logger.debugVar('containerDirPath', containerDirPath);
-
-        await ensureDirStructure(structure, containerDirPath);
-
-        this.enableContainerInEnvironment(environment, containerName);
-    }
-
-    public async addEnvironment(
-        name: string,
-        containersWithAliases: ReturnType<typeof mapProvidedContainersToObject>,
-    ) {
-        logger.debugFn(arguments);
-
-        await this.ensureInitialStructure();
-
-        if (this.isEnvironmentExist(name)) {
-            throw new Error(`Environment ${JSON.stringify(name)} already exist!`);
-        }
-
-        const envDir = this.getEnvironmentDirPath(name);
-        logger.debugVar('envDir', envDir);
-
-        await ensureDirStructure(CLI_PROJECT_ENVIRONMENT_STRUCTURE, envDir);
-
-        const rootDotEnvFile = this.getEnvironmentRootDotenvFilePath(name);
-        logger.debugVar('rootDotEnvFile', rootDotEnvFile);
-
-        const dotenvManager = this.getDotEnvManager(rootDotEnvFile);
-        logger.debugVar('dotenvManager', dotenvManager);
-
-        dotenvManager.setVariable('ENVIRONMENT_NAME', name);
-        dotenvManager.setVariable('PROJECT_NAME', this.getProjectName());
-        dotenvManager.setVariable(
-            'COMPOSE_FILE',
-            `./docker-compose.${
-                this.dockerContainers.getSupportedContainersNames().filter((p) => p === 'root')[0]
-            }.yml`,
-        );
-
-        for (const container of containersWithAliases) {
-            if (!this.dockerContainers.isSupported(container.name)) {
-                throw new Error(`Container ${container.name} is not supported!`);
-            }
-
-            await this.addContainerToEnvironment(
-                name,
-                container.name as ReturnType<
-                    typeof classDockerContainers.getSupportedContainersNames
-                >[number],
-                container.alias,
-            );
-        }
-    }
-
-    public removeEnvironment(name: string, force: boolean = false) {
-        logger.debugFn(arguments);
-
-        if (!this.isEnvironmentExist(name)) {
-            throw new Error(`Environment ${JSON.stringify(name)} does not exist!`);
-        }
-
-        const envDir = this.getEnvironmentDirPath(name);
-        logger.debugVar('envDir', envDir);
-
-        if (
-            force === false &&
-            !confirm(`Are you sure you want to remove environment ${JSON.stringify(name)}?`)
-        ) {
-            logger.info(`Environment ${JSON.stringify(name)} was not removed.`);
-            return;
-        }
-
-        Deno.removeSync(envDir, { recursive: true });
-        logger.info(`Environment ${JSON.stringify(name)} was removed.`);
-    }
+		const isEnvironmentDir = hasDotEnv && hasCompose && composeIsDir;
+		logger.debugVar('isEnvironmentDir', isEnvironmentDir);
+
+		return isEnvironmentDir;
+	}
+
+	public isEnvironmentExist(name: string) {
+		logger.debugFn(arguments);
+
+		const envDir = this.getEnvironmentDirPath(name);
+		logger.debugVar('envDir', envDir);
+
+		const exist = pathExistSync(envDir);
+		logger.debugVar('exist', exist);
+
+		return exist;
+	}
+
+	public containerExistInEnvironment(environment: string, container: string) {
+		logger.debugFn(arguments);
+
+		const composeDirPath = this.getEnvironmentComposeDirPath(environment);
+		logger.debugVar('composeDirPath', composeDirPath);
+
+		const composeContainerDirPath = `${composeDirPath}/${container}`;
+		logger.debugVar('composeContainerDirPath', composeContainerDirPath);
+
+		const containerDirExist = pathExistSync(composeContainerDirPath);
+		logger.debugVar('containerDirExist', containerDirExist);
+
+		if (containerDirExist) {
+			return true;
+		}
+
+		const finalYaml = this.getEnvironmentFinalDockerCompose(environment);
+		logger.debugVar('finalYaml', finalYaml);
+
+		const dockerServiceExist = _.has(finalYaml, ['services', container]);
+		logger.debugVar('dockerServiceExist', dockerServiceExist);
+
+		if (dockerServiceExist) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public generateUniqueContainerName(environment: string, container: string) {
+		logger.debugFn(arguments);
+
+		let key = 1;
+		logger.debugVar('key', key);
+
+		let containerName = container;
+		logger.debugVar('containerName', containerName);
+
+		while (this.containerExistInEnvironment(environment, containerName)) {
+			containerName = `${container}-${key}`;
+			logger.debugVar('containerName', containerName);
+
+			key++;
+			logger.debugVar('key', key);
+		}
+
+		return containerName;
+	}
+
+	public enableContainerInEnvironment(environment: string, container: string) {
+		logger.debugFn(arguments);
+
+		const containerComposeFilePath = this.getEnvironmentContainerComposeFilePath(
+			environment,
+			container,
+		);
+		logger.debugVar('containerComposeFilePath', containerComposeFilePath);
+
+		const relativeComposeFilePath = containerComposeFilePath.replace(
+			`${this.getProjectDir()}/`,
+			'./',
+		);
+		logger.debugVar('relativeComposeFilePath', relativeComposeFilePath);
+
+		const dotenvManager = this.getDotEnvManager(
+			this.getEnvironmentRootDotenvFilePath(environment),
+		);
+		logger.debugVar('dotenvManager', dotenvManager);
+
+		const composeFiles = (dotenvManager.getVariable('COMPOSE_FILE') || '').split(':');
+		logger.debugVar('composeFiles', composeFiles);
+
+		if (composeFiles.includes(relativeComposeFilePath)) {
+			return;
+		}
+
+		composeFiles.push(relativeComposeFilePath);
+		logger.debugVar('composeFiles', composeFiles);
+
+		dotenvManager.setVariable('COMPOSE_FILE', composeFiles.join(':'));
+	}
+
+	public async addContainerToEnvironment(
+		environment: string,
+		container: ReturnType<typeof classDockerContainers.getSupportedContainersNames>[number],
+		alias?: string,
+	) {
+		logger.debugFn(arguments);
+
+		if (!this.nonPremiumUserRestrictions.isContainerTypeAllowedForNonPremiumUsers(container)) {
+			throw new Error(`Container ${container} is not allowed for non-premium users!`);
+		}
+
+		if (
+			!this.nonPremiumUserRestrictions.isContainersCountAllowedForNonPremiumUsers(
+				this.getEnvironmentContainersCount(environment) + 1,
+			)
+		) {
+			throw new Error(
+				`Non-premium users can have only ${this.nonPremiumUserRestrictions.getMaxNumberOfProjectContainers()} containers!`,
+			);
+		}
+
+		const containerName = this.generateUniqueContainerName(environment, alias || container);
+		logger.debugVar('containerName', containerName);
+
+		const containerDefinition = this.dockerContainers.getContainerDefinition(
+			container,
+			containerName,
+		);
+		logger.debugVar('containerDefinition', containerDefinition);
+
+		const structure = containerDefinition.structure as unknown as TDirStructure;
+		logger.debugVar('structure', structure);
+
+		const containerDirPath = `${
+			this.getEnvironmentComposeDirPath(environment)
+		}/${containerName}`;
+		logger.debugVar('containerDirPath', containerDirPath);
+
+		await ensureDirStructure(structure, containerDirPath);
+
+		this.enableContainerInEnvironment(environment, containerName);
+	}
+
+	public async addContainersToEnvironment(
+		environment: string,
+		containers: ReturnType<typeof mapProvidedContainersToObject>,
+	) {
+		logger.debugFn(arguments);
+
+		if (
+			!this.nonPremiumUserRestrictions.isContainersCountAllowedForNonPremiumUsers(
+				this.getEnvironmentContainersCount(environment) + containers.length,
+			)
+		) {
+			throw new Error(
+				`Non-premium users can have only ${this.nonPremiumUserRestrictions.getMaxNumberOfProjectContainers()} containers!`,
+			);
+		}
+
+		for (const container of containers) {
+			if (!this.dockerContainers.isSupported(container.name)) {
+				throw new Error(`Container ${container.name} is not supported!`);
+			}
+
+			await this.addContainerToEnvironment(
+				environment,
+				container.name as ReturnType<
+					typeof classDockerContainers.getSupportedContainersNames
+				>[number],
+				container.alias,
+			);
+		}
+	}
+
+	public async addEnvironment(
+		name: string,
+		containersWithAliases: ReturnType<typeof mapProvidedContainersToObject>,
+	) {
+		logger.debugFn(arguments);
+
+		await this.ensureInitialStructure();
+
+		if (
+			!this.nonPremiumUserRestrictions.isEnvironmentsCountAllowedForNonPremiumUsers(
+				(await this.getEnvironmentsCount()) + 1,
+			)
+		) {
+			throw new Error(
+				`Non-premium users can have only ${this.nonPremiumUserRestrictions.getMaxNumberOfProjectEnvironments()} environments!`,
+			);
+		}
+
+		if (this.isEnvironmentExist(name)) {
+			throw new Error(`Environment ${JSON.stringify(name)} already exist!`);
+		}
+
+		const envDir = this.getEnvironmentDirPath(name);
+		logger.debugVar('envDir', envDir);
+
+		await ensureDirStructure(CLI_PROJECT_ENVIRONMENT_STRUCTURE, envDir);
+
+		const rootDotEnvFile = this.getEnvironmentRootDotenvFilePath(name);
+		logger.debugVar('rootDotEnvFile', rootDotEnvFile);
+
+		const dotenvManager = this.getDotEnvManager(rootDotEnvFile);
+		logger.debugVar('dotenvManager', dotenvManager);
+
+		dotenvManager.setVariable('ENVIRONMENT_NAME', name);
+		dotenvManager.setVariable('PROJECT_NAME', this.getProjectName());
+		dotenvManager.setVariable(
+			'COMPOSE_FILE',
+			`./docker-compose.${
+				this.dockerContainers.getSupportedContainersNames().filter((p) => p === 'root')[0]
+			}.yml`,
+		);
+
+		await this.addContainersToEnvironment(name, containersWithAliases);
+	}
+
+	public removeEnvironment(name: string, force: boolean = false) {
+		logger.debugFn(arguments);
+
+		if (!this.isEnvironmentExist(name)) {
+			throw new Error(`Environment ${JSON.stringify(name)} does not exist!`);
+		}
+
+		const envDir = this.getEnvironmentDirPath(name);
+		logger.debugVar('envDir', envDir);
+
+		if (
+			force === false &&
+			!confirm(`Are you sure you want to remove environment ${JSON.stringify(name)}?`)
+		) {
+			logger.info(`Environment ${JSON.stringify(name)} was not removed.`);
+			return;
+		}
+
+		Deno.removeSync(envDir, { recursive: true });
+		logger.info(`Environment ${JSON.stringify(name)} was removed.`);
+	}
 }
