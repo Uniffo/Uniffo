@@ -1,3 +1,5 @@
+// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+
 import { NON_PREMIUM_USER_RESTRICTIONS } from '../../constants/NON_PREMIUM_USER_RESTRICTIONS.ts';
 import { logger } from '../../global/logger.ts';
 import { isPremiumUser } from '../../utils/is_premium_user/is_premium_user.ts';

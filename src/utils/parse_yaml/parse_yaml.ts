@@ -1,3 +1,5 @@
+// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+
 import { parse } from '@std/yaml/parse';
 import { logger } from '../../global/logger.ts';
 import { _ } from '../lodash/lodash.ts';
