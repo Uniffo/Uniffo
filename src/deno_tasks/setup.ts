@@ -23,8 +23,7 @@ const setup = async () => {
   logger.info('Installing commit-msg...');
   const commitMsgFilename = `${Deno.cwd()}/.husky/commit-msg`;
   let huskyContentCommitMsg = `#!/bin/sh\n`;
-  huskyContentCommitMsg += `. "$(dirname "$0")/_/husky.sh"\n`;
-  huskyContentCommitMsg += `deno run -A npm:@commitlint/cli --edit "$1"\n`;
+  huskyContentCommitMsg += `$HOME/.dvm/bin/deno run -A npm:@commitlint/cli --edit "$1"\n`;
 
   await ensureFile(commitMsgFilename);
   Deno.writeTextFileSync(commitMsgFilename, huskyContentCommitMsg);
