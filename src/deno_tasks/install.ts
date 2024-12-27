@@ -14,6 +14,8 @@ import { generateUniqueBasename } from '../utils/generate_unique_basename/genera
 import meta from '../commands/service/db/start/start.ts';
 
 await (async function installer() {
+	classDependencyChecker.check();
+
 	const tmpDir = `${CLI_DIR.tmp}/${await generateUniqueBasename({ basePath: CLI_DIR.tmp })}`;
 	const database = new classDatabase({
 		dbSchema: DB_SCHEMA,
@@ -111,6 +113,4 @@ await (async function installer() {
 	logger.success(
 		`Uniffo ${latest} successfully installed. Please restart terminal and try to execute "uniffo"`,
 	);
-
-	classDependencyChecker.check();
 })();

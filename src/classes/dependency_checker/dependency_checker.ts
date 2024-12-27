@@ -8,6 +8,7 @@ export default class classDependencyChecker {
 	}
 
 	public static commandsToCheck: Parameters<typeof this.getFeed>[0] = [
+		{ cmd: 'curl', args: ['--version'] },
 		{ cmd: 'unzip', args: ['-v'] },
 		{ cmd: 'docker', args: ['-v'] },
 		{ cmd: 'docker', args: ['compose', 'version'], name: 'docker compose' },

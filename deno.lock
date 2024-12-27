@@ -4,6 +4,7 @@
     "jsr:@arekx/teeql@^1.0.2": "1.0.2",
     "jsr:@std/assert@^1.0.6": "1.0.8",
     "jsr:@std/assert@^1.0.8": "1.0.8",
+    "jsr:@std/async@^1.0.8": "1.0.9",
     "jsr:@std/data-structures@^1.0.4": "1.0.4",
     "jsr:@std/dotenv@~0.225.2": "0.225.2",
     "jsr:@std/fmt@0.221.0": "0.221.0",
@@ -21,6 +22,7 @@
     "npm:@types/node@*": "22.5.4",
     "npm:conventional-changelog-conventionalcommits@*": "8.0.0",
     "npm:conventional-changelog-conventionalcommits@8": "8.0.0",
+    "npm:husky@*": "9.1.6",
     "npm:lodash@4.17.12": "4.17.12"
   },
   "jsr": {
@@ -32,6 +34,9 @@
       "dependencies": [
         "jsr:@std/internal"
       ]
+    },
+    "@std/async@1.0.9": {
+      "integrity": "c6472fd0623b3f3daae023cdf7ca5535e1b721dfbf376562c0c12b3fb4867f91"
     },
     "@std/data-structures@1.0.4": {
       "integrity": "fa0e20c11eb9ba673417450915c750a0001405a784e2a4e0c3725031681684a0"
@@ -58,6 +63,7 @@
       "integrity": "6e693cbec94c81a1ad3df668685c7ba8e20742bb10305bc7137faa5cf16d2ec4",
       "dependencies": [
         "jsr:@std/assert@^1.0.8",
+        "jsr:@std/async",
         "jsr:@std/data-structures",
         "jsr:@std/fs",
         "jsr:@std/internal",
@@ -431,6 +437,9 @@
     },
     "has-flag@3.0.0": {
       "integrity": "sha512-sKJf1+ceQBr4SMkvQnBDNDtf4TXpVhVGateu0t918bl30FnbE2m4vNLX+VWe/dpjlb+HugGYzW7uQXH98HPEYw=="
+    },
+    "husky@9.1.6": {
+      "integrity": "sha512-sqbjZKK7kf44hfdE94EoX8MZNk0n7HeW37O4YrVGCF4wzgQjp+akPAkfUK5LZ6KuR/6sqeAVuXHji+RzQgOn5A=="
     },
     "import-fresh@3.3.0": {
       "integrity": "sha512-veYYhQa+D1QBKznvhUHxb8faxlrwUnxseDAbAp457E0wLNio2bOSKnjYDhMj+YiAq61xrMGhQk9iXVk5FzgQMw==",
