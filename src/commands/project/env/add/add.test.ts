@@ -12,10 +12,10 @@ import { logger } from '../../../../global/logger.ts';
 import { shell } from '../../../../utils/shell/shell.ts';
 import { prepareCmd } from '../../../../utils/prepare_command_to_execution/prepare_command_to_execution.ts';
 import _commandMetaInit from '../../init/init.ts';
-import classDockerContainers from '../../../../classes/docker_containers/docker_containers.ts';
 import { pwd } from '../../../../utils/pwd/pwd.ts';
 import { CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH } from '../../../../constants/CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH.ts';
 import { classNonPremiumUserRestrictions } from '../../../../classes/non_premium_user_restrictions/non_premium_user_restrictions.ts';
+import { dockerContainers } from '../../../../global/docker_containers.ts';
 
 Deno.test('commandProjectEnvAdd', async function testCommandProjectEnvAdd(t) {
 	const _isPremiumUser = classNonPremiumUserRestrictions.isPremiumUser;
@@ -136,9 +136,7 @@ Deno.test('commandProjectEnvAdd', async function testCommandProjectEnvAdd(t) {
 
 	await t.step(async function includedContainers() {
 		const envName = 'my-custom-env-with-containers';
-
-		const availableContainers = classDockerContainers.getSupportedContainersNames();
-		const defaultContainers: (typeof availableContainers)[number][] = ['wp-apache', 'database'];
+		const defaultContainers = dockerContainers.getWpRecommended().map(c => c.getName()).join(',');
 
 		const { command, destroy } = await prepareCmd(_commandMeta, [
 			'--debug',

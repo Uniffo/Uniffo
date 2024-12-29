@@ -12,7 +12,7 @@ const generateSecretKeyFile = async (secretKeyFile: string) => {
 	console.log('Write secret key to file', secretKeyFile);
 	await Deno.writeTextFile(
 		secretKeyFile,
-		getRandomId(15, '1234567890qwertyuioplkjhgfdsazxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM'),
+		getRandomId(32, '1234567890qwertyuioplkjhgfdsazxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM'),
 	);
 };
 
@@ -21,9 +21,8 @@ const generateSecretKeyTsFile = async (secretKeyFile: string, secretKeyTsFile: s
 		throw `Secret key file doesn't exist! ${secretKeyFile}`;
 	}
 
-	const fileContent = `export const secretKey = "${
-		Deno.readTextFileSync(secretKeyFile).trim()
-	}";`;
+	const fileContent = `export const secretKey = "${Deno.readTextFileSync(secretKeyFile).trim()
+		}";`;
 
 	console.log('Write secret key to typescript file', secretKeyTsFile);
 	Deno.writeTextFile(secretKeyTsFile, fileContent);

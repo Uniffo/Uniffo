@@ -2,7 +2,7 @@
 
 import { CLI_DIR } from '../../constants/CLI_DIR.ts';
 import { logger } from '../../global/logger.ts';
-import { getOsAlias } from '../../utils/get_od_alias/get_os_alias.ts';
+import { getOsAlias } from '../../utils/get_os_alias/get_os_alias.ts';
 import { classGitHubApiClient } from '../github/gh_api_client.ts';
 import { downloadFile } from '../../utils/download_file/download_file.ts';
 import { getCurrentCliVersion } from '../../utils/get_current_cli_version/get_current_cli_version.ts';
@@ -606,9 +606,8 @@ export class classCliVersionManager {
 				const difference = nextPossibleDownloadingDate - Date.now();
 				logger.debugVar('difference', difference);
 
-				infoMessage = `Some download is in progress, waiting (${
-					formatTime(difference)
-				})...`;
+				infoMessage = `Some download is in progress, waiting (${formatTime(difference)
+					})...`;
 				logger.debugVar('infoMessage', infoMessage);
 
 				waitingRequired = true;

@@ -1,0 +1,1 @@
+export const CLI_PROJECT_LOCAL_DOMAIN = 'uniffo.local';

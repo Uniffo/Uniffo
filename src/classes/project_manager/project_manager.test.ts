@@ -8,7 +8,6 @@ import { CLI_PROJECT_STRUCTURE } from '../../constants/CLI_PROJECT_STRUCTURE.ts'
 import { assert } from '@std/assert';
 import { _ } from '../../utils/lodash/lodash.ts';
 import { noError } from '../../utils/no_error/no_error.ts';
-import classDockerContainers from '../docker_containers/docker_containers.ts';
 import { pathExistSync } from '../../utils/path_exist/path_exist.ts';
 import { CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH } from '../../constants/CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH.ts';
 import { CLI_PROJECT_ENVIRONMENT_STRUCTURE_COMPOSE_DIR_BASENAME } from '../../constants/CLI_PROJECT_ENVIRONMENT_STRUCTURE_COMPOSE_DIR_BASENAME.ts';
@@ -17,6 +16,7 @@ import { logger } from '../../global/logger.ts';
 import { mapProvidedContainersToObject } from '../../utils/map_provided_containers_to_object/map_provided_containers_to_object.ts';
 import { getError } from '../../utils/get_error/get_error.ts';
 import { classNonPremiumUserRestrictions } from '../non_premium_user_restrictions/non_premium_user_restrictions.ts';
+import { dockerContainers } from '../../global/docker_containers.ts';
 
 Deno.test('projectManager', async function testProjectManager(t) {
 	const testDir = `${cwd()}/${await generateUniqueBasename({
@@ -63,15 +63,13 @@ Deno.test('projectManager', async function testProjectManager(t) {
 		const args = {
 			name: 'my-custom-env-name',
 			containers: mapProvidedContainersToObject(
-				classDockerContainers.getSupportedContainersNames().filter((p) => p !== 'root')
-					.join(','),
+				dockerContainers.getWpRecommended().map(c => c.getName()).join(','),
 			),
 		};
 		const args2 = {
 			name: 'my-custom-env-name2',
 			containers: mapProvidedContainersToObject(
-				classDockerContainers.getSupportedContainersNames().filter((p) => p !== 'root')
-					.join(','),
+				dockerContainers.getWpRecommended().map(c => c.getName()).join(','),
 			),
 		};
 
@@ -106,24 +104,19 @@ Deno.test('projectManager', async function testProjectManager(t) {
 			'Environment root env file exists',
 		);
 		assert(
-			await isFileExistsInFsAndStructure(
-				`${pm.getProjectDir()}/${CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH}/${args.name}/${CLI_PROJECT_ENVIRONMENT_STRUCTURE_COMPOSE_DIR_BASENAME}`,
-			),
-			'Environment root env file exists',
-		);
-		assert(
 			await noError(() => {
 				pm.removeEnvironment(args.name, true);
 			}),
 			'Remove environment',
 		);
+
 	});
 
 	await t.step('addEnvrionmentWithContainersAliases', async function () {
 		const args = {
 			name: 'my-custom-env-name-2',
 			containers: mapProvidedContainersToObject(
-				classDockerContainers.getSupportedContainersNames().filter((p) => p !== 'root')
+				dockerContainers.getWpRecommended().map(c => c.getName())
 					.map((container) => `${container}:alias-${container}`)
 					.join(','),
 			),

@@ -7,9 +7,9 @@ import { cwd } from '../../../../utils/cwd/cwd.ts';
 import { prepareCmd } from '../../../../utils/prepare_command_to_execution/prepare_command_to_execution.ts';
 import { noError } from '../../../../utils/no_error/no_error.ts';
 import { classProjectManager } from '../../../../classes/project_manager/project_manager.ts';
-import classDockerContainers from '../../../../classes/docker_containers/docker_containers.ts';
 import { mapProvidedContainersToObject } from '../../../../utils/map_provided_containers_to_object/map_provided_containers_to_object.ts';
 import { pathExistSync } from '../../../../utils/path_exist/path_exist.ts';
+import { dockerContainers } from '../../../../global/docker_containers.ts';
 
 Deno.test('commandProjectEnvRemove', async function testCommandProjectEnvRemove(t) {
 	const testDir = `${cwd()}/${await generateUniqueBasename({
@@ -26,11 +26,7 @@ Deno.test('commandProjectEnvRemove', async function testCommandProjectEnvRemove(
 	const environmentName = 'test-env';
 
 	const containersWithAliases = mapProvidedContainersToObject(
-		`${
-			classDockerContainers.getSupportedContainersNames().filter((p) => p == 'wp-apache')
-		}:my-wp-alias,${
-			classDockerContainers.getSupportedContainersNames().filter((p) => p == 'database')
-		}:my-db-alias`,
+		`${dockerContainers.getByName('wp-apache').getName()}:my-wp-alias,${dockerContainers.getByName('database').getName()}:my-db-alias`,
 	);
 
 	const pm = new classProjectManager({ projectDir });

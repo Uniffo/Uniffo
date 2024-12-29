@@ -2,8 +2,8 @@
 
 import { NON_PREMIUM_USER_RESTRICTIONS } from '../../constants/NON_PREMIUM_USER_RESTRICTIONS.ts';
 import { logger } from '../../global/logger.ts';
+import { DOCKER_CONTAINERS_DICTIONARY } from '../../pre_compiled/__docker_containers_definitions.ts';
 import { isPremiumUser } from '../../utils/is_premium_user/is_premium_user.ts';
-import classDockerContainers from '../docker_containers/docker_containers.ts';
 
 export class classNonPremiumUserRestrictions {
 	private static restrictions = NON_PREMIUM_USER_RESTRICTIONS;
@@ -37,7 +37,7 @@ export class classNonPremiumUserRestrictions {
 	}
 
 	public static isContainerTypeAllowedForNonPremiumUsers(
-		container: ReturnType<typeof classDockerContainers.getSupportedContainersNames>[number],
+		container: typeof DOCKER_CONTAINERS_DICTIONARY[number],
 	) {
 		logger.debugFn(arguments);
 

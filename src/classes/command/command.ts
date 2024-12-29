@@ -6,10 +6,9 @@ import { getCurrentCliVersion } from '../../utils/get_current_cli_version/get_cu
 import { emojify } from '../../utils/emojify/emojify.ts';
 import { _ } from '../../utils/lodash/lodash.ts';
 import { pwd } from '../../utils/pwd/pwd.ts';
-import classDockerContainers from '../docker_containers/docker_containers.ts';
 import { classProjectManager } from '../project_manager/project_manager.ts';
-import test from 'node:test';
 import { mapProvidedContainersToObject } from '../../utils/map_provided_containers_to_object/map_provided_containers_to_object.ts';
+import { dockerContainers } from '../../global/docker_containers.ts';
 
 export abstract class classCommand {
 	public args;
@@ -320,8 +319,8 @@ export abstract class classCommand {
 		const value = !_.isUndefined(providedValue)
 			? providedValue
 			: defaultValue.length
-			? defaultValue
-			: providedValue;
+				? defaultValue
+				: providedValue;
 		logger.debugVar('value', value);
 		const validation = validator ? await validator(value) : undefined;
 		logger.debugVar('validation', validation);
@@ -365,8 +364,7 @@ export abstract class classCommand {
 
 		const _prompt = () =>
 			prompt(
-				`${this.getCliBrandEmoji()} ${required == true ? `(Required) ` : ''}${
-					!!defaultValue == true ? `(Default: "${defaultValue}") ` : ''
+				`${this.getCliBrandEmoji()} ${required == true ? `(Required) ` : ''}${!!defaultValue == true ? `(Default: "${defaultValue}") ` : ''
 				}${message}`,
 			) || defaultValue;
 
@@ -484,7 +482,7 @@ export abstract class classCommand {
 		logger.debugVar('mappedContainerValue', mappedContainerValue);
 
 		const unsupportedContainers = mappedContainerValue.filter((value) =>
-			!classDockerContainers.isSupported(value.name || '')
+			!dockerContainers.isSupported(value.name)
 		);
 		logger.debugVar('unsupportedContainers', unsupportedContainers);
 

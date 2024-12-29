@@ -1,184 +1,71 @@
 // Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
 
+import { CLI_DOCKER_CONTAINERS_ALLOWED_FOR_USER } from '../../constants/CLI_DOCKER_CONTAINERS_ALLOWED_FOR_USER.ts';
 import { logger } from '../../global/logger.ts';
 import {
     DOCKER_CONTAINERS_DEFINITIONS,
     DOCKER_CONTAINERS_DICTIONARY,
 } from '../../pre_compiled/__docker_containers_definitions.ts';
 import { _ } from '../../utils/lodash/lodash.ts';
+import { TDirStructure } from '../../utils/map_dir_structure_to_path_content_array/map_dir_structure_to_path_content_array.d.ts';
+import { classDockerContainer } from './docker_container.ts';
 
 export default class classDockerContainers {
-    constructor() {
-        logger.debugFn(arguments);
-    }
-
-    public static getSupportedContainersNames() {
+    private containers;
+    constructor(definitions: typeof DOCKER_CONTAINERS_DEFINITIONS) {
         logger.debugFn(arguments);
 
-        const names = [...DOCKER_CONTAINERS_DICTIONARY];
-        logger.debugVar('names', names);
-
-        return names;
+        this.containers = definitions.map(d => new classDockerContainer({
+            name: d.containerName as typeof DOCKER_CONTAINERS_DICTIONARY[number],
+            allowedForUser: CLI_DOCKER_CONTAINERS_ALLOWED_FOR_USER.includes(d.containerName as typeof DOCKER_CONTAINERS_DICTIONARY[number]),
+            structure: d.structure as unknown as TDirStructure
+        }));
     }
 
-    public static getSupportedContainersDefinitions() {
+    public getAll() {
         logger.debugFn(arguments);
 
-        const definitions = this.getSupportedContainersNames().map((name) => {
-            const definition = DOCKER_CONTAINERS_DEFINITIONS.find((def) =>
-                def.containerName === name
-            );
-            logger.debugVar('definition', definition);
+        logger.debugVar('this.containers', this.containers);
 
-            if (!definition) {
-                return definition;
-            }
-
-            return _.cloneDeep(definition);
-        }).filter((p) => !!p);
-        logger.debugVar('definitions', definitions);
-
-        return definitions;
+        return this.containers;
     }
 
-    public static compileContainerDefinition(
-        definition: ReturnType<typeof this.getSupportedContainersDefinitions>[number],
-        container: string,
-    ) {
-        const newDefinition = { ...definition };
-        logger.debugVar('newDefinition', newDefinition);
+    public getByName(name: typeof DOCKER_CONTAINERS_DICTIONARY[number]) {
+        logger.debugFn(arguments);
 
-        function compile(value: any) {
-            logger.debugFn(arguments);
+        const container = this.getAll().find(c => c.getName() === name);
+        logger.debugVar('container', container);
 
-            const isString = _.isString(value);
-            logger.debugVar('isString', isString);
-
-            if (!isString) {
-                return value;
-            }
-
-            const compiled = value.replaceAll(
-                '${{REPLACE_CONTAINER_NAME}}',
-                container,
-            );
-            logger.debugVar('compiled', compiled);
-
-            return compiled;
+        if (!container) {
+            throw new Error(`Container ${name} not found!`);
         }
 
-        function walkThrough(currentObj: object, currentPath: string[]) {
-            logger.debugFn(arguments);
-
-            for (const [key, value] of Object.entries(currentObj)) {
-                const newKey = compile(key);
-                logger.debugVar('newKey', newKey);
-
-                const newPath = [...currentPath, newKey];
-                logger.debugVar('newPath', newPath);
-
-                const newValue = compile(value);
-                logger.debugVar('newValue', newValue);
-
-                _.unset(newDefinition, [...currentPath, key]);
-                _.set(newDefinition, newPath, newValue);
-
-                if (_.isPlainObject(newValue)) {
-                    walkThrough(newValue, newPath);
-                }
-            }
-        }
-
-        walkThrough(newDefinition, []);
-
-        logger.debugVar('newDefinition', newDefinition);
-
-        return newDefinition;
+        return container;
     }
 
-    public static getContainerDefinition(
-        container: ReturnType<typeof this.getSupportedContainersNames>[number],
-        alias?: string,
-    ) {
+    public isSupported(containerName: string) {
         logger.debugFn(arguments);
 
-        const containerDefinition = this.getSupportedContainersDefinitions().find((def) =>
-            def.containerName === container
-        );
-        logger.debugVar('containerDefinition', containerDefinition);
-
-        if (!containerDefinition) {
-            throw new Error(`Container definition not found for: ${container}`);
-        }
-
-        const compiled = this.compileContainerDefinition(containerDefinition, alias || container);
-        logger.debugVar('compiled', compiled);
-
-        return compiled;
-    }
-
-    public static getDockerComposeContentFromDefinition(
-        definition: ReturnType<typeof this.getSupportedContainersDefinitions>[number],
-    ) {
-        logger.debugFn(arguments);
-
-        const structure = definition.structure;
-        logger.debugVar('structure', structure);
-
-        const keys = Object.keys(structure);
-        logger.debugVar('keys', keys);
-
-        const dockerComposeKey = keys.find((k) => {
-            const name = k.split('.');
-            logger.debugVar('name', name);
-
-            const isComposeFile = name[0] === 'docker-compose';
-            logger.debugVar('isComposeFile', isComposeFile);
-
-            const isYaml = name[name.length - 1] === 'yml';
-            logger.debugVar('isYaml', isYaml);
-
-            if (isComposeFile && isYaml) {
-                return true;
-            }
-
-            return false;
-        });
-        logger.debugVar('dockerComposeKey', dockerComposeKey);
-
-        if (!dockerComposeKey) {
-            throw new Error('Docker compose file not found in container definition');
-        }
-
-        const content = (structure as any)[dockerComposeKey];
-        logger.debugVar('content', content);
-
-        return content;
-    }
-
-    public static getContainerDockerComposeContent(
-        container: ReturnType<typeof this.getSupportedContainersNames>[number],
-    ) {
-        logger.debugFn(arguments);
-
-        const definition = this.getContainerDefinition(container);
-        logger.debugVar('definition', definition);
-
-        const content = this.getDockerComposeContentFromDefinition(definition);
-        logger.debugVar('content', content);
-
-        return content;
-    }
-
-    public static isSupported(container: string) {
-        logger.debugFn(arguments);
-
-        const supported = [...this.getSupportedContainersNames()] as string[];
-        logger.debugVar('supported', supported);
-
-        const isSupported = supported.includes(container);
+        const isSupported = !!this.getAll().find(container => container.getName() == containerName as typeof DOCKER_CONTAINERS_DICTIONARY[number]);
         logger.debugVar('isSupported', isSupported);
 
         return isSupported;
+    }
+
+    public getWpRecommended() {
+        logger.debugFn(arguments);
+
+        const wpRecommendedContainers = [this.getByName('database'), this.getByName('wp-apache')];
+        logger.debugVar('wpRecommendedContainers', wpRecommendedContainers);
+
+        return wpRecommendedContainers;
+    }
+
+    public getAllowedForUser() {
+        logger.debugFn(arguments);
+
+        const allowedContainers = this.getAll().filter(c => c.isAllowedForUser());
+
+        return allowedContainers;
     }
 }

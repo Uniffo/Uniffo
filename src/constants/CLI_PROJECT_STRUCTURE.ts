@@ -1,7 +1,6 @@
 // Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
 
-import classDockerContainers from '../classes/docker_containers/docker_containers.ts';
-import { DOCKER_CONTAINERS_DEFINITIONS } from '../pre_compiled/__docker_containers_definitions.ts';
+import { dockerContainers } from '../global/docker_containers.ts';
 import { getCurrentCliVersion } from '../utils/get_current_cli_version/get_current_cli_version.ts';
 import { CLI_PROJECT_STRUCTURE_EMPTY_DIR } from './CLI_PROJECT_STRUCTURE_EMPTY_DIR.ts';
 import { CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_BASENAME } from './CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_BASENAME.ts';
@@ -16,6 +15,5 @@ export const CLI_PROJECT_STRUCTURE = {
 		[CLI_PROJECT_STRUCTURE_VERSION_FILE_BASENAME]: getCurrentCliVersion(),
 	},
 	[CLI_PROJECT_STRUCTURE_SOURCE_DIR_BASENAME]: CLI_PROJECT_STRUCTURE_EMPTY_DIR,
-	[CLI_PROJECT_STRUCTURE_ROOT_DOCKER_COMPOSE_FILE_BASENAME]: classDockerContainers
-		.getContainerDockerComposeContent('root'),
+	[CLI_PROJECT_STRUCTURE_ROOT_DOCKER_COMPOSE_FILE_BASENAME]: dockerContainers.getByName('root').getStructure()[CLI_PROJECT_STRUCTURE_ROOT_DOCKER_COMPOSE_FILE_BASENAME],
 };

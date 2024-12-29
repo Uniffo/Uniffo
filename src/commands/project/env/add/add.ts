@@ -2,8 +2,9 @@
 
 import { TCommandArgs, TCommandMeta } from '../../../../classes/command/command.d.ts';
 import { classCommand } from '../../../../classes/command/command.ts';
-import classDockerContainers from '../../../../classes/docker_containers/docker_containers.ts';
+import { CLI_DOCKER_CONTAINERS_ALLOWED_FOR_USER } from '../../../../constants/CLI_DOCKER_CONTAINERS_ALLOWED_FOR_USER.ts';
 import { CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH } from '../../../../constants/CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH.ts';
+import { dockerContainers } from '../../../../global/docker_containers.ts';
 import { logger } from '../../../../global/logger.ts';
 import { generateUniqueBasename } from '../../../../utils/generate_unique_basename/generate_unique_basename.ts';
 import { mapProvidedContainersToObject } from '../../../../utils/map_provided_containers_to_object/map_provided_containers_to_object.ts';
@@ -61,8 +62,8 @@ class classCommandProjectEnvAdd extends classCommand {
 			return this.validateNamesOfSupportedContainersAndAliases(value);
 		};
 
-		const availableContainers = classDockerContainers.getSupportedContainersNames();
-		const defaultContainers: (typeof availableContainers)[number][] = ['wp-apache', 'database'];
+		const availableContainers = CLI_DOCKER_CONTAINERS_ALLOWED_FOR_USER;
+		const defaultContainers = dockerContainers.getWpRecommended().map(c => c.getName());
 
 		return {
 			envName: await this.getOrAskForArg({
@@ -79,9 +80,8 @@ class classCommandProjectEnvAdd extends classCommand {
 			containers: await this.getOrAskForArg({
 				name: 'containers',
 				defaultValue: defaultContainers.join(','),
-				askMessage: `Enter list of container to setup example "${
-					availableContainers.filter((name) => name != 'root').join(',')
-				}"`,
+				askMessage: `Enter list of container to setup example "${availableContainers.filter((name) => name != 'root').join(',')
+					}"`,
 				required: false,
 				throwIfInvalid: true,
 				validator: validatorContainers,

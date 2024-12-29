@@ -1,0 +1,1 @@
+export const CLI_PROJECT_PUBLIC_NETWORK_NAME = 'uniffo_public';

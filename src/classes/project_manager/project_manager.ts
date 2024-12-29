@@ -18,13 +18,14 @@ import { parseYaml } from '../../utils/parse_yaml/parse_yaml.ts';
 import type { mapProvidedContainersToObject } from '../../utils/map_provided_containers_to_object/map_provided_containers_to_object.ts';
 import { CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_BASENAME } from '../../constants/CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_BASENAME.ts';
 import { classNonPremiumUserRestrictions } from '../non_premium_user_restrictions/non_premium_user_restrictions.ts';
+import { DOCKER_CONTAINERS_DICTIONARY } from '../../pre_compiled/__docker_containers_definitions.ts';
+import { dockerContainers } from '../../global/docker_containers.ts';
 
 /* The class `ProjectManager` in TypeScript handles project directory structure operations such as
 ensuring initial structure, converting structure to path content array, and getting the project
 structure. */
 export class classProjectManager {
 	private projectDir;
-	private dockerContainers;
 	private nonPremiumUserRestrictions;
 
 	constructor(args: { projectDir: string }) {
@@ -32,9 +33,6 @@ export class classProjectManager {
 
 		this.projectDir = args.projectDir;
 		logger.debugVar('this.projectDir', this.projectDir);
-
-		this.dockerContainers = classDockerContainers;
-		logger.debugVar('this.dockerContainers', this.dockerContainers);
 
 		this.nonPremiumUserRestrictions = classNonPremiumUserRestrictions;
 	}
@@ -86,9 +84,8 @@ export class classProjectManager {
 	public getEnvironmentComposeDirPath(environment: string) {
 		logger.debugFn(arguments);
 
-		const path = `${
-			this.getEnvironmentDirPath(environment)
-		}/${CLI_PROJECT_ENVIRONMENT_STRUCTURE_COMPOSE_DIR_PATH}`;
+		const path = `${this.getEnvironmentDirPath(environment)
+			}/${CLI_PROJECT_ENVIRONMENT_STRUCTURE_COMPOSE_DIR_PATH}`;
 		logger.debugVar('path', path);
 
 		return path;
@@ -97,9 +94,8 @@ export class classProjectManager {
 	public getEnvironmentRootDotenvFilePath(environment: string) {
 		logger.debugFn(arguments);
 
-		const path = `${
-			this.getEnvironmentDirPath(environment)
-		}/${CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_PATH}`;
+		const path = `${this.getEnvironmentDirPath(environment)
+			}/${CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_PATH}`;
 		logger.debugVar('path', path);
 
 		return path;
@@ -108,9 +104,8 @@ export class classProjectManager {
 	public getEnvironmentContainerComposeFilePath(environment: string, container: string) {
 		logger.debugFn(arguments);
 
-		const path = `${
-			this.getEnvironmentComposeDirPath(environment)
-		}/${container}/docker-compose.${container}.yml`;
+		const path = `${this.getEnvironmentComposeDirPath(environment)
+			}/${container}/docker-compose.${container}.yml`;
 		logger.debugVar('path', path);
 
 		return path;
@@ -216,21 +211,6 @@ export class classProjectManager {
 			CLI_PROJECT_STRUCTURE as unknown as TDirStructure,
 			this.getProjectDir(),
 		);
-	}
-	public async ensureContainerStructure(
-		container: ReturnType<typeof classDockerContainers.getSupportedContainersNames>[number],
-		path: string,
-	) {
-		logger.debugFn(arguments);
-
-		const containerDefinition = this.dockerContainers.getContainerDefinition(container);
-		logger.debugVar('containerDefinition', containerDefinition);
-
-		if (!_.isObject(containerDefinition?.structure)) {
-			throw new Error(`Container ${container} does not have structure defined!`);
-		}
-
-		await ensureDirStructure(containerDefinition.structure as unknown as TDirStructure, path);
 	}
 
 	public async isEnvironmentDir(path: string) {
@@ -353,13 +333,13 @@ export class classProjectManager {
 
 	public async addContainerToEnvironment(
 		environment: string,
-		container: ReturnType<typeof classDockerContainers.getSupportedContainersNames>[number],
+		containerName: typeof DOCKER_CONTAINERS_DICTIONARY[number],
 		alias?: string,
 	) {
 		logger.debugFn(arguments);
 
-		if (!this.nonPremiumUserRestrictions.isContainerTypeAllowedForNonPremiumUsers(container)) {
-			throw new Error(`Container ${container} is not allowed for non-premium users!`);
+		if (!this.nonPremiumUserRestrictions.isContainerTypeAllowedForNonPremiumUsers(containerName)) {
+			throw new Error(`Container ${containerName} is not allowed for non-premium users!`);
 		}
 
 		if (
@@ -372,26 +352,22 @@ export class classProjectManager {
 			);
 		}
 
-		const containerName = this.generateUniqueContainerName(environment, alias || container);
-		logger.debugVar('containerName', containerName);
+		const containerAlias = this.generateUniqueContainerName(environment, alias || containerName);
+		logger.debugVar('containerAlias', containerAlias);
 
-		const containerDefinition = this.dockerContainers.getContainerDefinition(
-			container,
-			containerName,
-		);
-		logger.debugVar('containerDefinition', containerDefinition);
+		const container = dockerContainers.getByName(containerName);
+		logger.debugVar('container', container);
 
-		const structure = containerDefinition.structure as unknown as TDirStructure;
-		logger.debugVar('structure', structure);
-
-		const containerDirPath = `${
-			this.getEnvironmentComposeDirPath(environment)
-		}/${containerName}`;
+		const containerDirPath = `${this.getEnvironmentComposeDirPath(environment)
+			}/${containerAlias}`;
 		logger.debugVar('containerDirPath', containerDirPath);
 
-		await ensureDirStructure(structure, containerDirPath);
+		const containerStructure = container.getStructure(containerAlias);
+		logger.debugVar('containerStructure', containerStructure);
 
-		this.enableContainerInEnvironment(environment, containerName);
+		await ensureDirStructure(containerStructure, containerDirPath);
+
+		this.enableContainerInEnvironment(environment, containerAlias);
 	}
 
 	public async addContainersToEnvironment(
@@ -411,15 +387,13 @@ export class classProjectManager {
 		}
 
 		for (const container of containers) {
-			if (!this.dockerContainers.isSupported(container.name)) {
+			if (!dockerContainers.isSupported(container.name)) {
 				throw new Error(`Container ${container.name} is not supported!`);
 			}
 
 			await this.addContainerToEnvironment(
 				environment,
-				container.name as ReturnType<
-					typeof classDockerContainers.getSupportedContainersNames
-				>[number],
+				container.name as typeof DOCKER_CONTAINERS_DICTIONARY[number],
 				container.alias,
 			);
 		}
@@ -450,6 +424,8 @@ export class classProjectManager {
 		const envDir = this.getEnvironmentDirPath(name);
 		logger.debugVar('envDir', envDir);
 
+		Deno.mkdirSync(envDir, { recursive: true });
+
 		await ensureDirStructure(CLI_PROJECT_ENVIRONMENT_STRUCTURE, envDir);
 
 		const rootDotEnvFile = this.getEnvironmentRootDotenvFilePath(name);
@@ -462,9 +438,7 @@ export class classProjectManager {
 		dotenvManager.setVariable('PROJECT_NAME', this.getProjectName());
 		dotenvManager.setVariable(
 			'COMPOSE_FILE',
-			`./docker-compose.${
-				this.dockerContainers.getSupportedContainersNames().filter((p) => p === 'root')[0]
-			}.yml`,
+			`./docker-compose.${dockerContainers.getByName('root').getName()}.yml`,
 		);
 
 		await this.addContainersToEnvironment(name, containersWithAliases);
