@@ -1,0 +1,22 @@
+services:
+
+  ${{REPLACE_CONTAINER_NAME}}:
+    env_file:
+      - ./.env.${{REPLACE_CONTAINER_NAME}}
+    image: ${TRAEFIK_IMAGE:-traefik:v3.2}
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      - "${TRAEFIK_HTTP_PORT:-80}:80"
+      - "${TRAEFIK_HTTPS_PORT:-443}:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./.config/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./.config/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      - ./certs:/etc/certs:ro
+    networks:
+      - ${{REPLACE_UNIFFO_PUBLIC_NETWORK_NAME}}
+
+networks:
+  ${{REPLACE_UNIFFO_PUBLIC_NETWORK_NAME}}:
+    driver: bridge
