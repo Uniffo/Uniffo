@@ -1,3 +1,5 @@
+// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+
 import { CLI_PROJECT_LOCAL_DOMAIN } from '../../constants/CLI_PROJECT_LOCAL_DOMAIN.ts';
 import { CLI_PROJECT_PUBLIC_NETWORK_NAME } from '../../constants/CLI_PROJECT_PUBLIC_NETWORK_NAME.ts';
 import { CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH } from '../../constants/CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH.ts';
