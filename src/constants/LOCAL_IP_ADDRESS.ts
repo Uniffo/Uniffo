@@ -1,0 +1,1 @@
+export const LOCAL_IP_ADDRESS = '127.0.0.1';
