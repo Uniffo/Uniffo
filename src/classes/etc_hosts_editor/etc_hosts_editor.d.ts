@@ -1,0 +1,1 @@
+export type TEtcHostsRow = { ip: string, domain: string };
