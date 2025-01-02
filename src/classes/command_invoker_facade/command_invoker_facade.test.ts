@@ -23,6 +23,7 @@ Deno.test('classCommandInvokerFacade', async function testClassCommandInvokerFac
 				tmp: `${testDir}/.cli/tmp`,
 				versions: `${testDir}/.cli/versions`,
 				localStorage: `${testDir}/.cli/localStorage`,
+				localRouter: `${testDir}/.cli/localRouter`,
 			},
 		},
 	};

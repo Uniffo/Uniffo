@@ -27,6 +27,7 @@ Deno.test('classCliVersionManager', async function testClassCliVersionManager() 
 				tmp: `${testDir}/.cli/tmp`,
 				versions: `${testDir}/.cli/versions`,
 				localStorage: `${testDir}/.cli/localStorage`,
+				localRouter: `${testDir}/.cli/localRouter`,
 			},
 		},
 	};

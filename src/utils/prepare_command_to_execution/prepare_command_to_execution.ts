@@ -44,6 +44,7 @@ export async function prepareCmd<T>(meta: TCommandMeta<T>, args: string[]) {
                 tmp: `${testDir}/.cli/tmp`,
                 versions: `${testDir}/.cli/versions`,
                 localStorage: `${testDir}/.cli/localStorage`,
+                localRouter: `${testDir}/.cli/localRouter`,
             },
         },
     };
