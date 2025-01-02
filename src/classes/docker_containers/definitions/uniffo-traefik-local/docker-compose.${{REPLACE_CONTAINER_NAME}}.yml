@@ -1,8 +1,8 @@
+name: uniffo-local-router
+
 services:
 
   ${{REPLACE_CONTAINER_NAME}}:
-    env_file:
-      - ./.env.${{REPLACE_CONTAINER_NAME}}
     image: ${TRAEFIK_IMAGE:-traefik:v3.2}
     security_opt:
       - no-new-privileges:true
@@ -19,4 +19,5 @@ services:
 
 networks:
   ${{REPLACE_UNIFFO_PUBLIC_NETWORK_NAME}}:
-    driver: bridge
+    name: ${{REPLACE_UNIFFO_PUBLIC_NETWORK_NAME}}
+    external: true

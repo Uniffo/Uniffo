@@ -1,24 +1,21 @@
 global:
+  checkNewVersion: true
   sendAnonymousUsage: false
-
+log:
+  level: INFO
+  format: common
 api:
   dashboard: true
   insecure: false
-
 providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     watch: true
     exposedByDefault: false
-
+    network: "${{REPLACE_UNIFFO_PUBLIC_NETWORK_NAME}}"
   file:
     filename: /etc/traefik/dynamic.yml
     watch: true
-
-log:
-  level: INFO
-  format: common
-
 entryPoints:
   web:
     address: ":80"
@@ -29,7 +26,6 @@ entryPoints:
           scheme: https
   websecure:
     address: ":443"
-
 tls:
   options:
     default:
