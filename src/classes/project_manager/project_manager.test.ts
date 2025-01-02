@@ -15,7 +15,6 @@ import { CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_BASENAME } from '../../
 import { logger } from '../../global/logger.ts';
 import { mapProvidedContainersToObject } from '../../utils/map_provided_containers_to_object/map_provided_containers_to_object.ts';
 import { getError } from '../../utils/get_error/get_error.ts';
-import { classNonPremiumUserRestrictions } from '../non_premium_user_restrictions/non_premium_user_restrictions.ts';
 import { docker } from '../../global/docker.ts';
 
 Deno.test('projectManager', async function testProjectManager(t) {
@@ -66,25 +65,12 @@ Deno.test('projectManager', async function testProjectManager(t) {
 				docker.composeDefinitions().getWpRecommended().map(c => c.getName()).join(','),
 			),
 		};
-		const args2 = {
-			name: 'my-custom-env-name2',
-			containers: mapProvidedContainersToObject(
-				docker.composeDefinitions().getWpRecommended().map(c => c.getName()).join(','),
-			),
-		};
 
 		assert(
 			await noError(async () => {
 				await pm.addEnvironment(args.name, args.containers);
 			}),
 			'Add environment',
-		);
-
-		assert(
-			await getError(async () => {
-				await pm.addEnvironment(args2.name, args2.containers);
-			}),
-			`Add second environment as non-premium user`,
 		);
 
 		assert(
@@ -155,45 +141,6 @@ Deno.test('projectManager', async function testProjectManager(t) {
 				pm.removeEnvironment(args.name, true);
 			}),
 			'Remove environment',
-		);
-	});
-
-	await t.step('NonPremiumUser', async function () {
-		const nonPremiumUserMaxContainers = classNonPremiumUserRestrictions
-			.getMaxNumberOfProjectContainers();
-		const containersAboveLimit = new Array(nonPremiumUserMaxContainers + 1).fill('wp-apache');
-
-		const args = {
-			name: 'my-custom-env-name-3',
-			containers: mapProvidedContainersToObject(containersAboveLimit.join(',')),
-		};
-
-		assert(
-			await getError(async () => {
-				await pm.addEnvironment(args.name, args.containers);
-			}),
-			'Add environment with too many containers',
-		);
-
-		assert(
-			await getError(async () => {
-				await pm.addContainersToEnvironment(args.name, args.containers);
-			}),
-			'Add containers to environment with too many containers',
-		);
-
-		assert(
-			await noError(async () => {
-				await pm.addContainersToEnvironment(args.name, args.containers.slice(0, -1));
-			}),
-			'Add environment with max non premium user containers',
-		);
-
-		assert(
-			await getError(async () => {
-				await pm.addContainersToEnvironment(args.name, args.containers.slice(0, 1));
-			}),
-			'Add containers to environment with no space for containers',
 		);
 	});
 

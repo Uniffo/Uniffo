@@ -14,14 +14,9 @@ import { prepareCmd } from '../../../../utils/prepare_command_to_execution/prepa
 import _commandMetaInit from '../../init/init.ts';
 import { pwd } from '../../../../utils/pwd/pwd.ts';
 import { CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH } from '../../../../constants/CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH.ts';
-import { classNonPremiumUserRestrictions } from '../../../../classes/non_premium_user_restrictions/non_premium_user_restrictions.ts';
 import { docker } from '../../../../global/docker.ts';
 
 Deno.test('commandProjectEnvAdd', async function testCommandProjectEnvAdd(t) {
-	const _isPremiumUser = classNonPremiumUserRestrictions.isPremiumUser;
-
-	classNonPremiumUserRestrictions.isPremiumUser = true;
-
 	const testDir = `${cwd()}/${await generateUniqueBasename({
 		basePath: cwd(),
 		prefix: `test_cp_ea_`,
@@ -155,8 +150,6 @@ Deno.test('commandProjectEnvAdd', async function testCommandProjectEnvAdd(t) {
 
 		await destroy();
 	});
-
-	classNonPremiumUserRestrictions.isPremiumUser = _isPremiumUser;
 
 	Deno.chdir(`${testDir}/../`);
 	await Deno.remove(testDir, { recursive: true });

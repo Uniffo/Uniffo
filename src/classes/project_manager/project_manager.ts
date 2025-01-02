@@ -16,7 +16,6 @@ import { CLI_PROJECT_ENVIRONMENT_STRUCTURE_COMPOSE_DIR_PATH } from '../../consta
 import { parseYaml } from '../../utils/parse_yaml/parse_yaml.ts';
 import type { mapProvidedContainersToObject } from '../../utils/map_provided_containers_to_object/map_provided_containers_to_object.ts';
 import { CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_BASENAME } from '../../constants/CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_BASENAME.ts';
-import { classNonPremiumUserRestrictions } from '../non_premium_user_restrictions/non_premium_user_restrictions.ts';
 import { DOCKER_CONTAINERS_DICTIONARY } from '../../pre_compiled/__docker_containers_definitions.ts';
 import { classDockerContainer } from '../docker_containers/docker_container.ts';
 import { docker } from '../../global/docker.ts';
@@ -26,15 +25,12 @@ ensuring initial structure, converting structure to path content array, and gett
 structure. */
 export class classProjectManager {
 	private projectDir;
-	private nonPremiumUserRestrictions;
 
 	constructor(args: { projectDir: string }) {
 		logger.debugFn(arguments);
 
 		this.projectDir = args.projectDir;
 		logger.debugVar('this.projectDir', this.projectDir);
-
-		this.nonPremiumUserRestrictions = classNonPremiumUserRestrictions;
 	}
 
 	/**
@@ -316,20 +312,6 @@ export class classProjectManager {
 	) {
 		logger.debugFn(arguments);
 
-		if (!this.nonPremiumUserRestrictions.isContainerTypeAllowedForNonPremiumUsers(containerName)) {
-			throw new Error(`Container ${containerName} is not allowed for non-premium users!`);
-		}
-
-		if (
-			!this.nonPremiumUserRestrictions.isContainersCountAllowedForNonPremiumUsers(
-				this.getEnvironmentContainersCount(environment) + 1,
-			)
-		) {
-			throw new Error(
-				`Non-premium users can have only ${this.nonPremiumUserRestrictions.getMaxNumberOfProjectContainers()} containers!`,
-			);
-		}
-
 		const containerAlias = this.generateUniqueContainerName(environment, alias || containerName);
 		logger.debugVar('containerAlias', containerAlias);
 
@@ -354,16 +336,6 @@ export class classProjectManager {
 	) {
 		logger.debugFn(arguments);
 
-		if (
-			!this.nonPremiumUserRestrictions.isContainersCountAllowedForNonPremiumUsers(
-				this.getEnvironmentContainersCount(environment) + containers.length,
-			)
-		) {
-			throw new Error(
-				`Non-premium users can have only ${this.nonPremiumUserRestrictions.getMaxNumberOfProjectContainers()} containers!`,
-			);
-		}
-
 		for (const container of containers) {
 			if (!docker.composeDefinitions().isSupported(container.name)) {
 				throw new Error(`Container ${container.name} is not supported!`);
@@ -384,16 +356,6 @@ export class classProjectManager {
 		logger.debugFn(arguments);
 
 		await this.ensureInitialStructure();
-
-		if (
-			!this.nonPremiumUserRestrictions.isEnvironmentsCountAllowedForNonPremiumUsers(
-				(await this.getEnvironmentsCount()) + 1,
-			)
-		) {
-			throw new Error(
-				`Non-premium users can have only ${this.nonPremiumUserRestrictions.getMaxNumberOfProjectEnvironments()} environments!`,
-			);
-		}
 
 		if (this.isEnvironmentExist(name)) {
 			throw new Error(`Environment ${JSON.stringify(name)} already exist!`);
