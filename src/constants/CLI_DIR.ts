@@ -5,4 +5,5 @@ export const CLI_DIR = {
 	tmp: `${Deno.env.get('HOME')}/.uniffo/tmp`,
 	versions: `${Deno.env.get('HOME')}/.uniffo/versions`,
 	localStorage: `${Deno.env.get('HOME')}/.uniffo/localStorage`,
+	localRouter: `${Deno.env.get('HOME')}/.uniffo/localRouter`,
 };
