@@ -247,14 +247,7 @@ Deno.test('crypto', async function testCrypto(t) {
 			},
 		];
 
-		const testData = [
-			...obj,
-			...obj,
-			...obj,
-			...obj,
-			...obj,
-			...obj,
-		];
+		const testData = new Array(15).fill(obj);
 
 		const encoded2 = classCrypto.encode(JSON.stringify(testData));
 		const decoded2 = classCrypto.decode(encoded2);

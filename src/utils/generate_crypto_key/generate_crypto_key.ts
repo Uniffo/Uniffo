@@ -25,5 +25,5 @@ export const generateCrptoKey = (x: string) => {
 		gerijgior = grndgkh ? [...gerijgior, grjsdrg.join('')] : [grjsdrg.join(''), ...gerijgior];
 		grndgkh = !grndgkh;
 	}
-	return gerijgior.join(',');
+	return gerijgior.join('');
 };
