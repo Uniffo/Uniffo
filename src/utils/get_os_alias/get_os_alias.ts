@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 /**
  * The function `getOsAlias` returns an alias for the operating system and architecture combination, or

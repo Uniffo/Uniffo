@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { CLI_DOCKER_CONTAINERS_ALLOWED_FOR_USER } from '../../constants/CLI_DOCKER_CONTAINERS_ALLOWED_FOR_USER.ts';
 import { logger } from '../../global/logger.ts';

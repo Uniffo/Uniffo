@@ -1,3 +1,5 @@
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
+
 import { logger } from '../../global/logger.ts';
 
 export function escapeSpecialCharsForRegex(text: string): string {

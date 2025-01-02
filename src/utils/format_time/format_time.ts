@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 export function formatTime(ms: number) {
     const seconds = ms / 1000;

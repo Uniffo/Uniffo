@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { logger } from '../../global/logger.ts';
 import { recursiveReaddir } from 'https://deno.land/x/recursive_readdir@v2.0.0/mod.ts';

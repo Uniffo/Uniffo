@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { CLI_PROJECT_STRUCTURE_ROOT_DOCKER_COMPOSE_FILE_BASENAME } from './CLI_PROJECT_STRUCTURE_ROOT_DOCKER_COMPOSE_FILE_BASENAME.ts';
 

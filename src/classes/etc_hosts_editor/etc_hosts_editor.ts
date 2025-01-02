@@ -1,3 +1,5 @@
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
+
 import { logger } from '../../global/logger.ts';
 import { escapeSpecialCharsForRegex } from '../../utils/escape_special_chars_for_regex/escape_special_chars_for_regex.ts';
 import { shell } from '../../utils/shell/shell.ts';

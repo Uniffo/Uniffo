@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { classDatabase } from '../classes/database/database.ts';
 import { DB_SCHEMA } from '../constants/DB_SCHEMA.ts';

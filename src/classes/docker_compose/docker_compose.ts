@@ -1,3 +1,5 @@
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
+
 import { logger } from '../../global/logger.ts';
 import { shell, shellStream } from '../../utils/shell/shell.ts';
 

@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { assert } from '@std/assert';
 import { prepareCmd } from '../../../../utils/prepare_command_to_execution/prepare_command_to_execution.ts';

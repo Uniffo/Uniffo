@@ -1,3 +1,5 @@
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
+
 import { CLI_DOCKER_MAIN_LOCAL_NETWORK_NAME } from '../../constants/CLI_DOCKER_MAIN_LOCAL_NETWORK_NAME.ts';
 import { CLI_PROJECT_LOCAL_DOMAIN } from '../../constants/CLI_PROJECT_LOCAL_DOMAIN.ts';
 import { LOCAL_IP_ADDRESS } from '../../constants/LOCAL_IP_ADDRESS.ts';

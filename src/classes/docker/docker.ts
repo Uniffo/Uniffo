@@ -1,3 +1,5 @@
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
+
 import { logger } from '../../global/logger.ts';
 import { DOCKER_CONTAINERS_DEFINITIONS } from '../../pre_compiled/__docker_containers_definitions.ts';
 import { classDockerCompose } from '../docker_compose/docker_compose.ts';

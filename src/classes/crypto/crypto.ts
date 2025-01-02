@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { secretKey } from '../../pre_compiled/__secret_key.ts';
 import { Aes } from 'https://deno.land/x/crypto@v0.10.1/aes.ts';

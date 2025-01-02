@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { docker } from '../global/docker.ts';
 import { getCurrentCliVersion } from '../utils/get_current_cli_version/get_current_cli_version.ts';

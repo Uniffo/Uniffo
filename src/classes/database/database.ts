@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { tql, unsafeRaw, when } from '@arekx/teeql';
 import type { DB_SCHEMA, typeofTables } from '../../constants/DB_SCHEMA.ts';

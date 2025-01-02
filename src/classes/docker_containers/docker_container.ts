@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { CLI_DOCKER_CONTAINER_MAIN_LOCAL_ROUTER_ALIAS } from '../../constants/CLI_DOCKER_CONTAINER_MAIN_LOCAL_ROUTER_ALIAS.ts';
 import { CLI_PROJECT_LOCAL_DOMAIN } from '../../constants/CLI_PROJECT_LOCAL_DOMAIN.ts';

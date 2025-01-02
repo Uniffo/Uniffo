@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { assertEquals } from '@std/assert';
 import { loopOnDirStructure } from './loop_on_dir_structure.ts';

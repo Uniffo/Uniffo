@@ -1,3 +1,5 @@
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
+
 import { assert } from '@std/assert';
 import { cwd } from '../../utils/cwd/cwd.ts';
 import { generateUniqueBasename } from '../../utils/generate_unique_basename/generate_unique_basename.ts';

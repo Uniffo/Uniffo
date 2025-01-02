@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { DB } from 'https://deno.land/x/sqlite@v3.9.1/mod.ts';
 import { cwd } from '../../utils/cwd/cwd.ts';
