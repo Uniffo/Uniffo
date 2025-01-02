@@ -9,7 +9,7 @@ import { noError } from '../../../../utils/no_error/no_error.ts';
 import { classProjectManager } from '../../../../classes/project_manager/project_manager.ts';
 import { mapProvidedContainersToObject } from '../../../../utils/map_provided_containers_to_object/map_provided_containers_to_object.ts';
 import { pathExistSync } from '../../../../utils/path_exist/path_exist.ts';
-import { dockerContainers } from '../../../../global/docker_containers.ts';
+import { docker } from '../../../../global/docker.ts';
 
 Deno.test('commandProjectEnvRemove', async function testCommandProjectEnvRemove(t) {
 	const testDir = `${cwd()}/${await generateUniqueBasename({
@@ -26,7 +26,7 @@ Deno.test('commandProjectEnvRemove', async function testCommandProjectEnvRemove(
 	const environmentName = 'test-env';
 
 	const containersWithAliases = mapProvidedContainersToObject(
-		`${dockerContainers.getByName('wp-apache').getName()}:my-wp-alias,${dockerContainers.getByName('database').getName()}:my-db-alias`,
+		`${docker.composeDefinitions().getByName('wp-apache').getName()}:my-wp-alias,${docker.composeDefinitions().getByName('database').getName()}:my-db-alias`,
 	);
 
 	const pm = new classProjectManager({ projectDir });

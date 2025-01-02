@@ -3,7 +3,6 @@
 import { logger } from '../../global/logger.ts';
 import { _ } from '../../utils/lodash/lodash.ts';
 import { CLI_PROJECT_STRUCTURE } from '../../constants/CLI_PROJECT_STRUCTURE.ts';
-import classDockerContainers from '../docker_containers/docker_containers.ts';
 import { getDirStructure } from '../../utils/get_dir_structure/get_dir_structure.ts';
 import { ensureDirStructure } from '../../utils/ensure_dir_structure/ensure_dir_structure.ts';
 import type { TDirStructure } from '../../utils/map_dir_structure_to_path_content_array/map_dir_structure_to_path_content_array.d.ts';
@@ -19,7 +18,8 @@ import type { mapProvidedContainersToObject } from '../../utils/map_provided_con
 import { CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_BASENAME } from '../../constants/CLI_PROJECT_ENVIRONMENT_STRUCTURE_ROOT_ENV_FILE_BASENAME.ts';
 import { classNonPremiumUserRestrictions } from '../non_premium_user_restrictions/non_premium_user_restrictions.ts';
 import { DOCKER_CONTAINERS_DICTIONARY } from '../../pre_compiled/__docker_containers_definitions.ts';
-import { dockerContainers } from '../../global/docker_containers.ts';
+import { classDockerContainer } from '../docker_containers/docker_container.ts';
+import { docker } from '../../global/docker.ts';
 
 /* The class `ProjectManager` in TypeScript handles project directory structure operations such as
 ensuring initial structure, converting structure to path content array, and getting the project
@@ -101,11 +101,11 @@ export class classProjectManager {
 		return path;
 	}
 
-	public getEnvironmentContainerComposeFilePath(environment: string, container: string) {
+	public getEnvironmentContainerComposeFilePath(args: { environment: string, container: classDockerContainer, containerAlias: string }) {
 		logger.debugFn(arguments);
 
-		const path = `${this.getEnvironmentComposeDirPath(environment)
-			}/${container}/docker-compose.${container}.yml`;
+		const path = `${this.getEnvironmentComposeDirPath(args.environment)
+			}/${args.containerAlias}/${args.container.composeFileBasename(args.containerAlias)}`;
 		logger.debugVar('path', path);
 
 		return path;
@@ -141,29 +141,6 @@ export class classProjectManager {
 		logger.debugVar('finalYaml', finalYaml);
 
 		return finalYaml;
-	}
-
-	public getDockerComposeCommand(environment: string) {
-		logger.debugFn(arguments);
-
-		const command = [
-			'docker',
-			'compose',
-			`--env-file`,
-			this.getEnvironmentRootDotenvFilePath(environment),
-		];
-		logger.debugVar('command', command);
-
-		return command;
-	}
-
-	public getDockerComposeEnvironmentConfigCommand(environment: string) {
-		logger.debugFn(arguments);
-
-		const command = [...this.getDockerComposeCommand(environment), 'config'];
-		logger.debugVar('command', command);
-
-		return command;
 	}
 
 	public async getEnvironmentsCount() {
@@ -298,13 +275,14 @@ export class classProjectManager {
 		return containerName;
 	}
 
-	public enableContainerInEnvironment(environment: string, container: string) {
+	public enableContainerInEnvironment(args: { environment: string, container: classDockerContainer, containerAlias: string }) {
 		logger.debugFn(arguments);
 
-		const containerComposeFilePath = this.getEnvironmentContainerComposeFilePath(
-			environment,
-			container,
-		);
+		const containerComposeFilePath = this.getEnvironmentContainerComposeFilePath({
+			environment: args.environment,
+			containerAlias: args.containerAlias,
+			container: args.container,
+		});
 		logger.debugVar('containerComposeFilePath', containerComposeFilePath);
 
 		const relativeComposeFilePath = containerComposeFilePath.replace(
@@ -314,7 +292,7 @@ export class classProjectManager {
 		logger.debugVar('relativeComposeFilePath', relativeComposeFilePath);
 
 		const dotenvManager = this.getDotEnvManager(
-			this.getEnvironmentRootDotenvFilePath(environment),
+			this.getEnvironmentRootDotenvFilePath(args.environment),
 		);
 		logger.debugVar('dotenvManager', dotenvManager);
 
@@ -355,7 +333,7 @@ export class classProjectManager {
 		const containerAlias = this.generateUniqueContainerName(environment, alias || containerName);
 		logger.debugVar('containerAlias', containerAlias);
 
-		const container = dockerContainers.getByName(containerName);
+		const container = docker.composeDefinitions().getByName(containerName);
 		logger.debugVar('container', container);
 
 		const containerDirPath = `${this.getEnvironmentComposeDirPath(environment)
@@ -367,7 +345,7 @@ export class classProjectManager {
 
 		await ensureDirStructure(containerStructure, containerDirPath);
 
-		this.enableContainerInEnvironment(environment, containerAlias);
+		this.enableContainerInEnvironment({ environment, containerAlias, container });
 	}
 
 	public async addContainersToEnvironment(
@@ -387,7 +365,7 @@ export class classProjectManager {
 		}
 
 		for (const container of containers) {
-			if (!dockerContainers.isSupported(container.name)) {
+			if (!docker.composeDefinitions().isSupported(container.name)) {
 				throw new Error(`Container ${container.name} is not supported!`);
 			}
 
@@ -438,7 +416,7 @@ export class classProjectManager {
 		dotenvManager.setVariable('PROJECT_NAME', this.getProjectName());
 		dotenvManager.setVariable(
 			'COMPOSE_FILE',
-			`./docker-compose.${dockerContainers.getByName('root').getName()}.yml`,
+			`./${docker.composeDefinitions().getByName('root').composeFileBasename()}`,
 		);
 
 		await this.addContainersToEnvironment(name, containersWithAliases);

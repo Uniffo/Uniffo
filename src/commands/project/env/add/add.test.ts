@@ -15,7 +15,7 @@ import _commandMetaInit from '../../init/init.ts';
 import { pwd } from '../../../../utils/pwd/pwd.ts';
 import { CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH } from '../../../../constants/CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH.ts';
 import { classNonPremiumUserRestrictions } from '../../../../classes/non_premium_user_restrictions/non_premium_user_restrictions.ts';
-import { dockerContainers } from '../../../../global/docker_containers.ts';
+import { docker } from '../../../../global/docker.ts';
 
 Deno.test('commandProjectEnvAdd', async function testCommandProjectEnvAdd(t) {
 	const _isPremiumUser = classNonPremiumUserRestrictions.isPremiumUser;
@@ -136,7 +136,7 @@ Deno.test('commandProjectEnvAdd', async function testCommandProjectEnvAdd(t) {
 
 	await t.step(async function includedContainers() {
 		const envName = 'my-custom-env-with-containers';
-		const defaultContainers = dockerContainers.getWpRecommended().map(c => c.getName()).join(',');
+		const defaultContainers = docker.composeDefinitions().getWpRecommended().map(c => c.getName()).join(',');
 
 		const { command, destroy } = await prepareCmd(_commandMeta, [
 			'--debug',

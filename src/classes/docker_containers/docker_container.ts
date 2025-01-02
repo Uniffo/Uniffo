@@ -1,7 +1,8 @@
 // Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
 
+import { CLI_DOCKER_CONTAINER_MAIN_LOCAL_ROUTER_ALIAS } from '../../constants/CLI_DOCKER_CONTAINER_MAIN_LOCAL_ROUTER_ALIAS.ts';
 import { CLI_PROJECT_LOCAL_DOMAIN } from '../../constants/CLI_PROJECT_LOCAL_DOMAIN.ts';
-import { CLI_PROJECT_PUBLIC_NETWORK_NAME } from '../../constants/CLI_PROJECT_PUBLIC_NETWORK_NAME.ts';
+import { CLI_DOCKER_MAIN_LOCAL_NETWORK_NAME } from '../../constants/CLI_DOCKER_MAIN_LOCAL_NETWORK_NAME.ts';
 import { CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH } from '../../constants/CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH.ts';
 import { CLI_PROJECT_STRUCTURE_SOURCE_DIR_PATH } from '../../constants/CLI_PROJECT_STRUCTURE_SOURCE_DIR_PATH.ts';
 import { logger } from '../../global/logger.ts';
@@ -45,6 +46,15 @@ export class classDockerContainer {
         return structure as T;
     }
 
+    public composeFileBasename(alias?: string) {
+        logger.debugFn(arguments);
+
+        const basename = `docker-compose.${alias || this.getName()}.yml`;
+        logger.debugVar('basename', basename);
+
+        return basename;
+    }
+
     public isAllowedForUser() {
         logger.debugFn(arguments);
 
@@ -60,8 +70,9 @@ export class classDockerContainer {
             '${{REPLACE_CONTAINER_NAME}}': args.alias,
             '${{REPLACE_CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH}}': CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH,
             '${{REPLACE_CLI_PROJECT_STRUCTURE_SOURCE_DIR_PATH}}': CLI_PROJECT_STRUCTURE_SOURCE_DIR_PATH,
-            '${{REPLACE_UNIFFO_PUBLIC_NETWORK_NAME}}': CLI_PROJECT_PUBLIC_NETWORK_NAME,
+            '${{REPLACE_UNIFFO_PUBLIC_NETWORK_NAME}}': CLI_DOCKER_MAIN_LOCAL_NETWORK_NAME,
             '${{REPLACE_UNIFFO_LOCAL_DOMAIN}}': CLI_PROJECT_LOCAL_DOMAIN,
+            '${{REPLACE_CLI_DOCKER_CONTAINER_MAIN_LOCAL_ROUTER_ALIAS}}': CLI_DOCKER_CONTAINER_MAIN_LOCAL_ROUTER_ALIAS,
         }
         logger.debugVar('replaceMap', replaceMap);
 

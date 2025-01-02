@@ -8,7 +8,7 @@ import { _ } from '../../utils/lodash/lodash.ts';
 import { pwd } from '../../utils/pwd/pwd.ts';
 import { classProjectManager } from '../project_manager/project_manager.ts';
 import { mapProvidedContainersToObject } from '../../utils/map_provided_containers_to_object/map_provided_containers_to_object.ts';
-import { dockerContainers } from '../../global/docker_containers.ts';
+import { docker } from '../../global/docker.ts';
 
 export abstract class classCommand {
 	public args;
@@ -482,7 +482,7 @@ export abstract class classCommand {
 		logger.debugVar('mappedContainerValue', mappedContainerValue);
 
 		const unsupportedContainers = mappedContainerValue.filter((value) =>
-			!dockerContainers.isSupported(value.name)
+			!docker.composeDefinitions().isSupported(value.name)
 		);
 		logger.debugVar('unsupportedContainers', unsupportedContainers);
 

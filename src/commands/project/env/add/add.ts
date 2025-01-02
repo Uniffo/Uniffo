@@ -4,7 +4,7 @@ import { TCommandArgs, TCommandMeta } from '../../../../classes/command/command.
 import { classCommand } from '../../../../classes/command/command.ts';
 import { CLI_DOCKER_CONTAINERS_ALLOWED_FOR_USER } from '../../../../constants/CLI_DOCKER_CONTAINERS_ALLOWED_FOR_USER.ts';
 import { CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH } from '../../../../constants/CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH.ts';
-import { dockerContainers } from '../../../../global/docker_containers.ts';
+import { docker } from '../../../../global/docker.ts';
 import { logger } from '../../../../global/logger.ts';
 import { generateUniqueBasename } from '../../../../utils/generate_unique_basename/generate_unique_basename.ts';
 import { mapProvidedContainersToObject } from '../../../../utils/map_provided_containers_to_object/map_provided_containers_to_object.ts';
@@ -63,7 +63,7 @@ class classCommandProjectEnvAdd extends classCommand {
 		};
 
 		const availableContainers = CLI_DOCKER_CONTAINERS_ALLOWED_FOR_USER;
-		const defaultContainers = dockerContainers.getWpRecommended().map(c => c.getName());
+		const defaultContainers = docker.composeDefinitions().getWpRecommended().map(c => c.getName());
 
 		return {
 			envName: await this.getOrAskForArg({

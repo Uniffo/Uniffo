@@ -16,7 +16,7 @@ import { logger } from '../../global/logger.ts';
 import { mapProvidedContainersToObject } from '../../utils/map_provided_containers_to_object/map_provided_containers_to_object.ts';
 import { getError } from '../../utils/get_error/get_error.ts';
 import { classNonPremiumUserRestrictions } from '../non_premium_user_restrictions/non_premium_user_restrictions.ts';
-import { dockerContainers } from '../../global/docker_containers.ts';
+import { docker } from '../../global/docker.ts';
 
 Deno.test('projectManager', async function testProjectManager(t) {
 	const testDir = `${cwd()}/${await generateUniqueBasename({
@@ -63,13 +63,13 @@ Deno.test('projectManager', async function testProjectManager(t) {
 		const args = {
 			name: 'my-custom-env-name',
 			containers: mapProvidedContainersToObject(
-				dockerContainers.getWpRecommended().map(c => c.getName()).join(','),
+				docker.composeDefinitions().getWpRecommended().map(c => c.getName()).join(','),
 			),
 		};
 		const args2 = {
 			name: 'my-custom-env-name2',
 			containers: mapProvidedContainersToObject(
-				dockerContainers.getWpRecommended().map(c => c.getName()).join(','),
+				docker.composeDefinitions().getWpRecommended().map(c => c.getName()).join(','),
 			),
 		};
 
@@ -116,7 +116,7 @@ Deno.test('projectManager', async function testProjectManager(t) {
 		const args = {
 			name: 'my-custom-env-name-2',
 			containers: mapProvidedContainersToObject(
-				dockerContainers.getWpRecommended().map(c => c.getName())
+				docker.composeDefinitions().getWpRecommended().map(c => c.getName())
 					.map((container) => `${container}:alias-${container}`)
 					.join(','),
 			),
