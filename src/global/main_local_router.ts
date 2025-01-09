@@ -6,7 +6,7 @@ import { CLI_DOCKER_CONTAINER_MAIN_LOCAL_ROUTER_ALIAS } from '../constants/CLI_D
 import { docker } from './docker.ts';
 
 export const mainLocalRouter = new classMainLocalRouter({
-    routerContainer: docker.composeDefinitions().getByName('uniffo-traefik-local-local'),
+    routerContainer: docker.composeDefinitions().getByName('uniffo-traefik-local'),
     routerContainerAlias: CLI_DOCKER_CONTAINER_MAIN_LOCAL_ROUTER_ALIAS,
     routerDirPath: `${CLI_DIR.localRouter}`,
 });
