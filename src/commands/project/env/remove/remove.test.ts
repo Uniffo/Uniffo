@@ -79,5 +79,5 @@ Deno.test('commandProjectEnvRemove', async function testCommandProjectEnvRemove(
 	});
 
 	Deno.chdir(`${testDir}/../`);
-	// await Deno.remove(testDir, { recursive: true });
+	await Deno.remove(testDir, { recursive: true });
 });
