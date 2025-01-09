@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { classDatabaseSqlLiteSchema } from '../classes/database_sqllite_schema/database_sqllite_schema.ts';
 import { DB_NAME } from './DB_NAME.ts';

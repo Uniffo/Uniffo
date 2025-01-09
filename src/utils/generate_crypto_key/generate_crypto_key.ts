@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 export const generateCrptoKey = (x: string) => {
 	const riejgoierjg = x.split('').reverse().join('');
@@ -25,5 +25,5 @@ export const generateCrptoKey = (x: string) => {
 		gerijgior = grndgkh ? [...gerijgior, grjsdrg.join('')] : [grjsdrg.join(''), ...gerijgior];
 		grndgkh = !grndgkh;
 	}
-	return gerijgior.join(',');
+	return gerijgior.join('');
 };

@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { fromFileUrl } from '@std/path/from-file-url';
 import { classCliVersionManager } from '../../classes/cli_version_manager/cli_version_manager.ts';
@@ -44,6 +44,7 @@ export async function prepareCmd<T>(meta: TCommandMeta<T>, args: string[]) {
                 tmp: `${testDir}/.cli/tmp`,
                 versions: `${testDir}/.cli/versions`,
                 localStorage: `${testDir}/.cli/localStorage`,
+                localRouter: `${testDir}/.cli/localRouter`,
             },
         },
     };
@@ -60,6 +61,7 @@ export async function prepareCmd<T>(meta: TCommandMeta<T>, args: string[]) {
         cliDir: testData.dir.cli,
         gitHubApiClient,
         tmpDir: testData.dir.cli.tmp,
+        database,
     });
     logger.debugVar('cliVersionManager', cliVersionManager);
 

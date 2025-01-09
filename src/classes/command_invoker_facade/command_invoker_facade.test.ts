@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { logger } from '../../global/logger.ts';
 import { cwd } from '../../utils/cwd/cwd.ts';
@@ -23,6 +23,7 @@ Deno.test('classCommandInvokerFacade', async function testClassCommandInvokerFac
 				tmp: `${testDir}/.cli/tmp`,
 				versions: `${testDir}/.cli/versions`,
 				localStorage: `${testDir}/.cli/localStorage`,
+				localRouter: `${testDir}/.cli/localRouter`,
 			},
 		},
 	};
@@ -36,6 +37,7 @@ Deno.test('classCommandInvokerFacade', async function testClassCommandInvokerFac
 		cliDir: testData.dir.cli,
 		gitHubApiClient,
 		tmpDir,
+		database,
 	});
 	const commandsRepository = new classCommandsRepository();
 	const commandInvoker = new classCommandInvoker();

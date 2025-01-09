@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { logger } from '../global/logger.ts';
 import { ensureFile } from '@std/fs';
@@ -23,8 +23,7 @@ const setup = async () => {
   logger.info('Installing commit-msg...');
   const commitMsgFilename = `${Deno.cwd()}/.husky/commit-msg`;
   let huskyContentCommitMsg = `#!/bin/sh\n`;
-  huskyContentCommitMsg += `. "$(dirname "$0")/_/husky.sh"\n`;
-  huskyContentCommitMsg += `deno run -A npm:@commitlint/cli --edit "$1"\n`;
+  huskyContentCommitMsg += `$HOME/.dvm/bin/deno run -A npm:@commitlint/cli --edit "$1"\n`;
 
   await ensureFile(commitMsgFilename);
   Deno.writeTextFileSync(commitMsgFilename, huskyContentCommitMsg);

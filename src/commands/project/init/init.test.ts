@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { assert } from '@std/assert';
 import { noError } from '../../../utils/no_error/no_error.ts';
@@ -7,7 +7,7 @@ import _commandMeta from './init.ts';
 import { generateUniqueBasename } from '../../../utils/generate_unique_basename/generate_unique_basename.ts';
 import { cwd } from '../../../utils/cwd/cwd.ts';
 import { _ } from '../../../utils/lodash/lodash.ts';
-import { loopOnProjectStructure } from '../../../utils/loop_on_project_structure/loop_on_project_structure.ts';
+import { loopOnDirStructure } from '../../../utils/loop_on_dir_structure/loop_on_dir_structure.ts';
 import { CLI_PROJECT_STRUCTURE } from '../../../constants/CLI_PROJECT_STRUCTURE.ts';
 import { logger } from '../../../global/logger.ts';
 import { pathExist } from '../../../utils/path_exist/path_exist.ts';
@@ -49,7 +49,7 @@ Deno.test('commandProjectInit', async function testCommandProjectInit(t) {
 		});
 
 		await t.step('execution', async function testCommandInitHelp() {
-			const projectName = 'my own project name';
+			const projectName = 'my_own_project_name';
 			const args: string[] = [
 				'--debug',
 				`--project-name="${projectName}"`,
@@ -65,7 +65,7 @@ Deno.test('commandProjectInit', async function testCommandProjectInit(t) {
 			assert(await pathExist(`${testDir}/${projectName}`) === true, 'Check project path');
 
 			const paths: string[] = [];
-			loopOnProjectStructure(CLI_PROJECT_STRUCTURE, (args) => {
+			loopOnDirStructure(CLI_PROJECT_STRUCTURE, (args) => {
 				paths.push(`${testDir}/${projectName}/${args.path}`);
 			});
 			logger.debug(`Paths:`, paths);

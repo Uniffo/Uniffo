@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { assert } from '@std/assert';
 import { classCrypto } from './crypto.ts';
@@ -247,14 +247,7 @@ Deno.test('crypto', async function testCrypto(t) {
 			},
 		];
 
-		const testData = [
-			...obj,
-			...obj,
-			...obj,
-			...obj,
-			...obj,
-			...obj,
-		];
+		const testData = new Array(15).fill(obj);
 
 		const encoded2 = classCrypto.encode(JSON.stringify(testData));
 		const decoded2 = classCrypto.decode(encoded2);

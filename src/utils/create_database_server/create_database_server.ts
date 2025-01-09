@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { classDatabaseServer } from '../../classes/database_server/database_server.ts';
 import { classDatabaseSqlLite } from '../../classes/database_sqllite/database_sqllite.ts';

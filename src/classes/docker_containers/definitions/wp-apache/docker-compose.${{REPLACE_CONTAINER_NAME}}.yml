@@ -1,0 +1,18 @@
+services:
+
+  ${{REPLACE_CONTAINER_NAME}}:
+    env_file:
+      - ./${{REPLACE_CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH}}/${ENVIRONMENT_NAME}/compose/${{REPLACE_CONTAINER_NAME}}/.env.${{REPLACE_CONTAINER_NAME}}
+    build:
+      dockerfile: ./${{REPLACE_CLI_PROJECT_STRUCTURE_ENVIRONMENTS_DIR_PATH}}/${ENVIRONMENT_NAME}/compose/${{REPLACE_CONTAINER_NAME}}/dockerfile.${{REPLACE_CONTAINER_NAME}}
+      args:
+        - IMAGE=${IMAGE_WP:-wordpress:apache}
+        - USER_ID=${USER_ID:-0}
+        - GROUP_ID=${GROUP_ID:-0}
+        - WEB_DIRECTORY=${WEB_DIRECTORY:-}
+    working_dir: /var/www/html/${WEB_DIRECTORY:-}
+    restart: ${WP_RESTART:-unless-stopped}
+    ports:
+      - ${WP_PORT:-80}:80
+    volumes:
+      - ./${{REPLACE_CLI_PROJECT_STRUCTURE_SOURCE_DIR_PATH}}:/var/www/html/${WEB_DIRECTORY:-}

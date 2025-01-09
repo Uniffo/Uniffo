@@ -1,10 +1,13 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { DOCUMENTATION_COLOR_THEME } from '../../../constants/DOCUMENTATION_COLOR_THEME.ts';
 import { generateDocumentation } from '../../../utils/generate_documentation/generate_documentation.ts';
 
 const feedArguments = [
-	['--project-name="..."', 'Project directory name'],
+	[
+		'--project-name="..."',
+		'Project directory name. Allowed characters: a-z, A-Z, 0-9, - and _, spaces are not allowed',
+	],
 ];
 
 const feedOptions = [

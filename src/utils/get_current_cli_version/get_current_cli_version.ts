@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { version } from '../../classes/cli_version_manager/cli_version_manager.d.ts';
 import { logger } from '../../global/logger.ts';

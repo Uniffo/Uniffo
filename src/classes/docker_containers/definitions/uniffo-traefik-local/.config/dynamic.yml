@@ -1,0 +1,38 @@
+http:
+  routers:
+    traefik:
+      rule: "Host(`${{REPLACE_CONTAINER_NAME}}.${{REPLACE_UNIFFO_LOCAL_DOMAIN}}`)"
+      service: "api@internal"
+      entryPoints:
+        - websecure
+      tls: {}
+      middlewares:
+        - "default"
+        - "traefikAuth"
+  middlewares:
+    auth:
+      traefikAuth:
+        users:
+          - "admin:{SHA}0DPiKuNIrrVmD8IUCuw1hQxNqZc="
+    default:
+      chain:
+        middlewares:
+          - default-security-headers
+          - gzip
+    default-security-headers:
+      headers:
+        browserXssFilter: true
+        contentTypeNosniff: true
+        forceSTSHeader: true
+        frameDeny: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        sslRedirect: true
+        stsIncludeSubdomains: true
+        stsPreload: true
+        stsSeconds: 63072000
+    gzip:
+      compress: {}
+tls:
+  certificates:
+    - certFile: "/etc/certs/local-cert.pem"
+      keyFile: "/etc/certs/local-key.pem"

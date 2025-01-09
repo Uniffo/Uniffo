@@ -1,8 +1,8 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { CLI_DIR } from '../../constants/CLI_DIR.ts';
 import { logger } from '../../global/logger.ts';
-import { getOsAlias } from '../../utils/get_od_alias/get_os_alias.ts';
+import { getOsAlias } from '../../utils/get_os_alias/get_os_alias.ts';
 import { classGitHubApiClient } from '../github/gh_api_client.ts';
 import { downloadFile } from '../../utils/download_file/download_file.ts';
 import { getCurrentCliVersion } from '../../utils/get_current_cli_version/get_current_cli_version.ts';
@@ -11,6 +11,10 @@ import { ensureExecutePermissions } from '../../utils/ensure_execute_permissions
 import { pathExist } from '../../utils/path_exist/path_exist.ts';
 import { version } from './cli_version_manager.d.ts';
 import { shell } from '../../utils/shell/shell.ts';
+import { sleep } from '../../utils/sleep/sleep.ts';
+import { formatTime } from '../../utils/format_time/format_time.ts';
+import { _ } from '../../utils/lodash/lodash.ts';
+import type { classDatabase } from '../database/database.ts';
 
 /* The `classCliVersionManager` class is a TypeScript class that represents the Uniffo Version Manager, which is
 responsible for managing the versions of the "uniffo" software by downloading and extracting
@@ -23,6 +27,8 @@ export class classCliVersionManager {
 	public prefferedCliVersion: version | undefined;
 	public cliDir;
 	public tmpDir;
+	public downloadingBreakTime = 1000 * 60;
+	public database;
 
 	/**
 	 * The constructor function initializes the GitHub API client, CLI directory, and temporary directory
@@ -34,6 +40,7 @@ export class classCliVersionManager {
 			cliDir: typeof CLI_DIR;
 			gitHubApiClient: classGitHubApiClient;
 			tmpDir: string;
+			database: classDatabase;
 		},
 	) {
 		logger.debugFn(arguments);
@@ -46,6 +53,9 @@ export class classCliVersionManager {
 
 		this.tmpDir = args.tmpDir;
 		logger.debugVar(`this.tmpDir`, this.tmpDir);
+
+		this.database = args.database;
+		logger.debugVar(`this.database`, this.database);
 	}
 
 	/**
@@ -493,6 +503,10 @@ export class classCliVersionManager {
 			throw `Invalid session tmp dir "${tmpDir}"!`;
 		}
 
+		await this.ensureThatCanDownload();
+
+		await this.setDownloadingState(true);
+
 		const downloadDetails = await downloadFile({
 			saveToFile: true,
 			returnFileContent: false,
@@ -500,6 +514,13 @@ export class classCliVersionManager {
 			destDir: tmpDir,
 		});
 		logger.debugVar('downloadDetails', downloadDetails);
+
+		await this.setDownloadingState(false);
+
+		const nextPossibleDownloadingDate = Date.now() + this.downloadingBreakTime;
+		logger.debugVar('nextPossibleDownloadingDate', nextPossibleDownloadingDate);
+
+		await this.setNextPossibleDownloadingDate(nextPossibleDownloadingDate);
 
 		if (!downloadDetails.filename) {
 			throw 'Downloaded filename is incorrect!';
@@ -524,7 +545,7 @@ export class classCliVersionManager {
 
 		logger.info(`Extracting into ${destDir}`);
 
-		await shell(...['unzip', downloadDetails.filename, '-d', destDir]);
+		await shell({ cmd: ['unzip', downloadDetails.filename, '-d', destDir] });
 
 		for (const dirEntry of Deno.readDirSync(destDir)) {
 			logger.debugVar('dirEntry', dirEntry);
@@ -534,5 +555,116 @@ export class classCliVersionManager {
 		}
 
 		logger.info(`"Uniffo ${tagName} downloaded"`);
+	}
+
+	public async ensureThatCanDownload() {
+		logger.debugFn(arguments);
+
+		if (!(await this.getDownloadingState()) && !(await this.getNextPossibleDownloadingDate())) {
+			logger.debug(`No need to wait`);
+			return;
+		}
+
+		const sleepingTime = 1000 * 1;
+		logger.debugVar('sleepingTime', sleepingTime);
+
+		const infoMessageInterval = 1000 * 15;
+		logger.debugVar('infoMessageInterval', infoMessageInterval);
+
+		let nextPossibleInfoMessageDate = Date.now();
+		logger.debugVar('nextPossibleInfoMessageDate', nextPossibleInfoMessageDate);
+
+		const updateNextPossibleInfoMessageDate = () => {
+			logger.debugFn(arguments);
+
+			nextPossibleInfoMessageDate = Date.now() + infoMessageInterval;
+			logger.debugVar('nextPossibleInfoMessageDate', nextPossibleInfoMessageDate);
+		};
+
+		while (true) {
+			let waitingRequired = false;
+			logger.debugVar('waitingRequired', waitingRequired);
+
+			let infoMessage = '';
+			logger.debugVar('infoMessage', infoMessage);
+
+			const downloadingState = await this.getDownloadingState();
+			logger.debugVar('downloadingState', downloadingState);
+
+			const nextPossibleDownloadingDate = await this.getNextPossibleDownloadingDate();
+			logger.debugVar('nextPossibleDownloadingDate', nextPossibleDownloadingDate);
+
+			if (downloadingState) {
+				infoMessage = `Some download is in progress, waiting...`;
+				logger.debugVar('infoMessage', infoMessage);
+
+				waitingRequired = true;
+				logger.debugVar('waitingRequired', waitingRequired);
+			} else if (
+				nextPossibleDownloadingDate && Date.now() < nextPossibleDownloadingDate
+			) {
+				const difference = nextPossibleDownloadingDate - Date.now();
+				logger.debugVar('difference', difference);
+
+				infoMessage = `Some download is in progress, waiting (${formatTime(difference)
+					})...`;
+				logger.debugVar('infoMessage', infoMessage);
+
+				waitingRequired = true;
+				logger.debugVar('waitingRequired', waitingRequired);
+			}
+
+			if (!waitingRequired) {
+				logger.debug(`No need to wait`);
+				break;
+			}
+
+			if (nextPossibleInfoMessageDate < Date.now()) {
+				logger.info(infoMessage);
+				updateNextPossibleInfoMessageDate();
+			}
+
+			await sleep(sleepingTime);
+		}
+	}
+
+	public async getDownloadingState() {
+		logger.debugFn(arguments);
+
+		const downloadingState = await this.database.getPersistentValue('cvm_downloadingState');
+		logger.debugVar('downloadingState', downloadingState);
+
+		if (!downloadingState) {
+			return false;
+		}
+
+		return downloadingState.value as boolean;
+	}
+
+	public async setDownloadingState(bool: boolean) {
+		logger.debugFn(arguments);
+
+		return await this.database.setPersistentValue('cvm_downloadingState', bool);
+	}
+
+	public async getNextPossibleDownloadingDate() {
+		logger.debugFn(arguments);
+
+		const nextPossibleDownloadingDate = await this.database.getPersistentValue(
+			'cvm_nextPossibleDownloadingDate',
+		);
+		logger.debugVar('nextPossibleDownloadingDate', nextPossibleDownloadingDate);
+
+		if (!nextPossibleDownloadingDate) {
+			return 0;
+		}
+
+		return nextPossibleDownloadingDate.value as number;
+	}
+
+	public async setNextPossibleDownloadingDate(date: number) {
+		logger.debugFn(arguments);
+
+		return await this.database.setPersistentValue('cvm_nextPossibleDownloadingDate', date);
 	}
 }

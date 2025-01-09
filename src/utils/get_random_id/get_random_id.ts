@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 /**
  * The getRandomId function generates a random string of characters with a specified length.
@@ -7,7 +7,7 @@
  * @returns The function `getRandomId` returns a randomly generated string of characters with a length
  * specified by the `idLength` parameter.
  */
-export const getRandomId = (idLength: number, from = '1234567890qwertyuioplkjhgfdsazxcvbnm') => {
+export const getRandomId = (idLength: number, from = '1234567890qwertyuioplkjhgfdsazxcvbnmQWERTYUIOPLKJHGFDSAZXCVBNM') => {
 	const availableChars = from;
 	const getRandomNumber = (max: number, min: number) =>
 		Math.floor(Math.random() * (max - min + 1)) + min;

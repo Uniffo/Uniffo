@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { TCommandArgs } from './command.d.ts';
 import { logger } from '../../global/logger.ts';
@@ -6,6 +6,9 @@ import { getCurrentCliVersion } from '../../utils/get_current_cli_version/get_cu
 import { emojify } from '../../utils/emojify/emojify.ts';
 import { _ } from '../../utils/lodash/lodash.ts';
 import { pwd } from '../../utils/pwd/pwd.ts';
+import { classProjectManager } from '../project_manager/project_manager.ts';
+import { mapProvidedContainersToObject } from '../../utils/map_provided_containers_to_object/map_provided_containers_to_object.ts';
+import { docker } from '../../global/docker.ts';
 
 export abstract class classCommand {
 	public args;
@@ -311,7 +314,13 @@ export abstract class classCommand {
 			validator,
 		} = args;
 
-		const value = this.args.getKV([name])?.[0]?.[1];
+		const providedValue = this.args.getKV([name])?.[0]?.[1];
+		logger.debugVar('providedValue', providedValue);
+		const value = !_.isUndefined(providedValue)
+			? providedValue
+			: defaultValue.length
+				? defaultValue
+				: providedValue;
 		logger.debugVar('value', value);
 		const validation = validator ? await validator(value) : undefined;
 		logger.debugVar('validation', validation);
@@ -322,7 +331,7 @@ export abstract class classCommand {
 		}
 
 		// IF throwIfInvalid is true and provided validator is a function, throw an error
-		if (throwIfInvalid && _.isFunction(validator)) {
+		if (throwIfInvalid && _.isFunction(validator) && validation != true) {
 			throw _.isString(validation) ? validation : `Invalid value of argument "${name}" !`;
 		}
 
@@ -355,8 +364,7 @@ export abstract class classCommand {
 
 		const _prompt = () =>
 			prompt(
-				`${this.getCliBrandEmoji()} ${required == true ? `(Required) ` : ''}${
-					!!defaultValue == true ? `(Default: "${defaultValue}") ` : ''
+				`${this.getCliBrandEmoji()} ${required == true ? `(Required) ` : ''}${!!defaultValue == true ? `(Default: "${defaultValue}") ` : ''
 				}${message}`,
 			) || defaultValue;
 
@@ -418,6 +426,27 @@ export abstract class classCommand {
 		return currentPwd;
 	}
 
+	public async getProjectManager() {
+		logger.debugFn(arguments);
+
+		const projectManager = new classProjectManager({ projectDir: await this.getPwd() });
+		logger.debugVar('projectManager', projectManager);
+
+		return projectManager;
+	}
+
+	public isSafeString(str: string) {
+		logger.debugFn(arguments);
+
+		const REGEX = /^[A-Za-z0-9-_]+$/;
+		logger.debugVar('REGEX', REGEX);
+
+		const testResult = REGEX.test(str);
+		logger.debugVar('testResult', testResult);
+
+		return testResult;
+	}
+
 	/**
 	 * The function `validateEnvName` checks if the provided environment name contains only alphanumeric
 	 * characters, hyphens, and underscores.
@@ -429,11 +458,59 @@ export abstract class classCommand {
 	public validateEnvName(envName: string) {
 		logger.debugFn(arguments);
 
-		const ENV_NAME_REGEX = /^[A-Za-z0-9-_]+$/;
-		logger.debugVar('ENV_NAME_REGEX', ENV_NAME_REGEX);
-
-		if (!ENV_NAME_REGEX.test(envName)) {
+		if (!this.isSafeString(envName)) {
 			return `Invalid environment name "${envName}". Only A-z 0-9 - _ are allowed!`;
+		}
+
+		return true;
+	}
+
+	public validateProjectName(name: string) {
+		logger.debugFn(arguments);
+
+		if (!this.isSafeString(name)) {
+			return `Invalid project name "${name}". Only A-z 0-9 - _ are allowed!`;
+		}
+
+		return true;
+	}
+
+	public validateNamesOfSupportedContainersAndAliases(containersWithAliases: string) {
+		logger.debugFn(arguments);
+
+		const mappedContainerValue = mapProvidedContainersToObject(containersWithAliases);
+		logger.debugVar('mappedContainerValue', mappedContainerValue);
+
+		const unsupportedContainers = mappedContainerValue.filter((value) =>
+			!docker.composeDefinitions().isSupported(value.name)
+		);
+		logger.debugVar('unsupportedContainers', unsupportedContainers);
+
+		if (unsupportedContainers.length) {
+			let errorMsg = 'Containers are ';
+			if (unsupportedContainers.length == 1) {
+				errorMsg = 'Container is ';
+			}
+
+			errorMsg += `not supported! ${JSON.stringify(unsupportedContainers.join(','))}`;
+
+			return errorMsg;
+		}
+
+		const unsupportedContainersAliases = mappedContainerValue.filter((value) =>
+			_.isString(value.alias) && value.alias.length
+		).filter((value) => this.isSafeString(value.alias));
+		logger.debugVar('unsupportedContainersAliases', unsupportedContainersAliases);
+
+		if (unsupportedContainersAliases.length) {
+			let errorMsg = 'Aliases are ';
+			if (unsupportedContainersAliases.length == 1) {
+				errorMsg = 'Alias is ';
+			}
+
+			errorMsg += `not valid! ${JSON.stringify(unsupportedContainersAliases.join(','))}`;
+
+			return errorMsg;
 		}
 
 		return true;

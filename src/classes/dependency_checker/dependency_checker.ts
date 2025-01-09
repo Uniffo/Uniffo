@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { logger } from '../../global/logger.ts';
 
@@ -8,6 +8,7 @@ export default class classDependencyChecker {
 	}
 
 	public static commandsToCheck: Parameters<typeof this.getFeed>[0] = [
+		{ cmd: 'curl', args: ['--version'] },
 		{ cmd: 'unzip', args: ['-v'] },
 		{ cmd: 'docker', args: ['-v'] },
 		{ cmd: 'docker', args: ['compose', 'version'], name: 'docker compose' },

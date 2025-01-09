@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import type { version } from '../../../../classes/cli_version_manager/cli_version_manager.d.ts';
 import type { TCommandArgs, TCommandMeta } from '../../../../classes/command/command.d.ts';
@@ -28,6 +28,7 @@ class classCommandSetDefaultVersion extends classCommand {
                 name: 'release',
                 askMessage: 'Enter Uniffo release version:',
                 required: true,
+                throwIfInvalid: true,
                 validator: this.validateVersion.bind(this),
             }),
         };

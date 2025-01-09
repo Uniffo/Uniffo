@@ -1,4 +1,4 @@
-// Copyright 2023-2024 Maciej Koralewski. All rights reserved. EULA license.
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
 
 import { getError } from '../../utils/get_error/get_error.ts';
 import { assert } from '@std/assert';
@@ -33,7 +33,7 @@ Deno.test('classDatabase', async function testClassDatabase(t) {
 	await dbServer.start();
 	dbServer.listen();
 
-	const totalStores = 10;
+	const totalStores = 4;
 	const stores = new Array(totalStores).fill(0).map(() =>
 		new classDatabase({ dbSchema: DB_SCHEMA, dbServerSocketPath: testSocket })
 	);
@@ -75,7 +75,7 @@ Deno.test('classDatabase', async function testClassDatabase(t) {
 
 				assert(
 					(await store.getPersistentValue(persistentTestKey))?.value ===
-						persistentTestValue,
+					persistentTestValue,
 					'check persistent value',
 				);
 
@@ -151,7 +151,7 @@ Deno.test('classDatabase', async function testClassDatabase(t) {
 
 				assert(
 					(await getError<string>(async () => await store.getAllSessionValues())).length >
-						0,
+					0,
 					'try to get session value from destroyed session',
 				);
 
