@@ -1,3 +1,5 @@
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
+
 import { Reflect } from '@dx/reflect';
 import { logger } from '../../global/logger.ts';
 import { INJECTABLE_METADATA_KEY } from './decorators/injectable.ts';

@@ -1,3 +1,5 @@
+// Copyright 2023-2025 Maciej Koralewski. All rights reserved. EULA license.
+
 import { assertEquals, assertInstanceOf, assertThrows } from '@std/assert';
 import { classIocContainer } from './ioc_container.ts';
 import { InjectProperty } from './decorators/inject_property.ts';
